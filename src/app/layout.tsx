@@ -17,17 +17,17 @@ async function getSeoSettings() {
     const response = await fetch(`${baseUrl}/api/settings/seo`, {
       next: { revalidate: 3600 } // Revalidate every hour
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.seoSettings) {
         return data.seoSettings;
       }
     }
-    } catch (error) {
-      // Silent error handling
-    }
-  
+  } catch (error) {
+    // Silent error handling
+  }
+
   // Return defaults if fetch fails
   return {
     metaDescriptionAr: seoConfig.descriptionAr,
@@ -38,7 +38,7 @@ async function getSeoSettings() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const seoSettings = await getSeoSettings();
-  
+
   return {
     metadataBase: new URL(seoConfig.siteUrl),
     title: `${seoConfig.brandNameAr} | ${seoConfig.brandNameEn}`,
@@ -140,7 +140,7 @@ export default function RootLayout({
     s.chunkLoadingGlobal.forEach = Array.prototype.forEach;
   }
   
-  // Monitor and fix (Burp Suite defense)
+  // Monitor and fix (Burp Suite defense) - optimized frequency
   setInterval(function() {
     if (s.webpackChunk_N_E && typeof s.webpackChunk_N_E.push !== 'function') {
       s.webpackChunk_N_E = [];
@@ -152,7 +152,7 @@ export default function RootLayout({
       if (typeof window !== 'undefined') window.__next_f = s.__next_f;
       if (typeof self !== 'undefined') self.__next_f = s.__next_f;
     }
-  }, 50);
+  }, 5000); // Reduced from 50ms to 5000ms (5 seconds) for better performance
 })();
             `,
           }}

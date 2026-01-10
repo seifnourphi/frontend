@@ -252,10 +252,10 @@ export default function CheckoutPage() {
 
       // Only revalidate if coupon code exists
       if (appliedCoupon.code) {
-        // Add a small delay to debounce rapid changes
+        // Add delay to debounce rapid changes (optimized for performance)
         const timeoutId = setTimeout(() => {
           validateCouponWithNewTotal();
-        }, 500);
+        }, 1500); // Increased from 500ms to reduce API calls
 
         return () => clearTimeout(timeoutId);
       }
