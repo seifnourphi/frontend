@@ -5,6 +5,7 @@ import { CartProvider } from '@/components/providers/CartProvider';
 import { WishlistProvider } from '@/components/providers/WishlistProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import { SecurityShield } from '@/components/providers/SecurityShield';
 import { Header } from '@/components/layout/Header';
 import { ScrollRestoration } from '@/components/ui/ScrollRestoration';
 import { BackToTop } from '@/components/ui/BackToTop';
@@ -163,21 +164,23 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <link href="https://fonts.cdnfonts.com/css/dubai" rel="stylesheet" />
       </head>
-      <body className="antialiased bg-gray-50 text-gray-900 font-dubai">
-        <LanguageProvider>
-          <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <ToastProvider>
-                  <ScrollRestoration />
-                  <Header />
-                  {children}
-                  <BackToTop />
-                </ToastProvider>
-              </WishlistProvider>
-            </CartProvider>
-          </AuthProvider>
-        </LanguageProvider>
+      <body className="antialiased bg-gray-50 text-gray-900 font-dubai transition-colors duration-300">
+        <SecurityShield>
+          <LanguageProvider>
+            <AuthProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <ToastProvider>
+                    <ScrollRestoration />
+                    <Header />
+                    {children}
+                    <BackToTop />
+                  </ToastProvider>
+                </WishlistProvider>
+              </CartProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </SecurityShield>
       </body>
     </html>
   );

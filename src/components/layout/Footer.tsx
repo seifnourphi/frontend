@@ -34,13 +34,20 @@ export function Footer() {
   const isFetchingWhatsappRef = useRef(false);
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
+  const [pagesVisibility, setPagesVisibility] = useState({
+    about: true,
+    contact: true,
+    terms: true
+  });
+
   useEffect(() => {
     const fetchStoreSettings = async () => {
       // Check cache first
       if (settingsCacheRef.current) {
         const cacheAge = Date.now() - settingsCacheRef.current.timestamp;
         if (cacheAge < CACHE_DURATION) {
-          setStoreSettings(settingsCacheRef.current.data);
+          setStoreSettings(settingsCacheRef.current.data.store);
+          setPagesVisibility(settingsCacheRef.current.data.visibility);
           return;
         }
       }
@@ -52,46 +59,51 @@ export function Footer() {
 
       isFetchingSettingsRef.current = true;
       try {
-        const response = await fetch('/api/settings/store');
-        if (response.ok) {
-          const data = await response.json();
-          const settings = data.storeSettings || {
+        // Fetch both store and pages content
+        const [storeRes, pagesRes] = await Promise.all([
+          fetch('/api/settings/store'),
+          fetch('/api/settings/pages-content')
+        ]);
+
+        let storeData = null;
+        let visibilityData = { about: true, contact: true, terms: true };
+
+        if (storeRes.ok) {
+          const data = await storeRes.json();
+          storeData = data.storeSettings || {
             phone: '+20 100 000 0000',
             email: 'ridaa.store.team@gmail.com',
             name: 'RIDAA Fashion',
             nameAr: 'رِداء للأزياء'
           };
-          
-          // Update cache
-          settingsCacheRef.current = {
-            data: settings,
-            timestamp: Date.now()
-          };
-          setStoreSettings(settings);
-        } else {
-          // Use cached data or defaults
-          if (settingsCacheRef.current) {
-            setStoreSettings(settingsCacheRef.current.data);
-          } else {
-            setStoreSettings({
-              phone: '+20 100 000 0000',
-              email: 'ridaa.store.team@gmail.com',
-              name: 'RIDAA Fashion',
-              nameAr: 'رِداء للأزياء'
-            });
+        }
+
+        if (pagesRes.ok) {
+          const data = await pagesRes.json();
+          const pages = data.pagesContent || data.data?.pagesContent;
+          if (pages) {
+            visibilityData = {
+              about: pages.about?.enabled !== false,
+              contact: pages.contact?.enabled !== false,
+              terms: pages.terms?.enabled !== false
+            };
           }
         }
+
+        // Update cache and state
+        settingsCacheRef.current = {
+          data: { store: storeData, visibility: visibilityData },
+          timestamp: Date.now()
+        };
+        setStoreSettings(storeData);
+        setPagesVisibility(visibilityData);
+
       } catch (error) {
-        // Use cached data or defaults
+        console.error('Error fetching footer settings:', error);
+        // Fallback to cache
         if (settingsCacheRef.current) {
-          setStoreSettings(settingsCacheRef.current.data);
-        } else {
-          setStoreSettings({
-            phone: '+20 100 000 0000',
-            email: 'ridaa.store.team@gmail.com',
-            name: 'RIDAA Fashion',
-            nameAr: 'رِداء للأزياء'
-          });
+          setStoreSettings(settingsCacheRef.current.data.store);
+          setPagesVisibility(settingsCacheRef.current.data.visibility);
         }
       } finally {
         isFetchingSettingsRef.current = false;
@@ -119,7 +131,7 @@ export function Footer() {
         if (response.ok) {
           const data = await response.json();
           const number = data.whatsappNumber || '+201000000000';
-          
+
           // Update cache
           whatsappCacheRef.current = {
             data: number,
@@ -160,7 +172,7 @@ export function Footer() {
           <div className="md:col-span-2">
             <div className="mb-6">
               <div className="flex flex-col items-center mb-4">
-                <span className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{fontFamily: 'serif', width: '100%', textAlign: 'center'}}>
+                <span className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{ fontFamily: 'serif', width: '100%', textAlign: 'center' }}>
                   R<span className="text-2xl">i</span>DAA
                 </span>
                 <div className="w-full h-0.5 mt-1" style={{
@@ -172,20 +184,20 @@ export function Footer() {
                 WEAR YOUR IDENTITY
               </div>
             </div>
-            
+
             <p className="text-gray-300 mb-6 max-w-md leading-relaxed" suppressHydrationWarning>
-              {mounted ? (language === 'ar' 
+              {mounted ? (language === 'ar'
                 ? 'نقدم لك أجمل الأزياء العربية الأصيلة والأنيقة من ثياب تقليدية وملابس عربية راقية تناسب جميع المناسبات'
                 : 'We offer you the most beautiful authentic and elegant Arabic clothing from traditional garments to sophisticated Arabic fashion suitable for all occasions'
               ) : 'نقدم لك أجمل الأزياء العربية الأصيلة والأنيقة من ثياب تقليدية وملابس عربية راقية تناسب جميع المناسبات'}
             </p>
-            
+
             {/* Social Links */}
             <div className="flex flex-wrap gap-3">
               {storeSettings.socialMedia?.facebook?.enabled !== false && (
-                <a 
-                  href={storeSettings.socialMedia?.facebook?.url || '#'} 
-                  target="_blank" 
+                <a
+                  href={storeSettings.socialMedia?.facebook?.url || '#'}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-[#1877F2] rounded-full flex items-center justify-center hover:bg-[#166FE5] transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
                   aria-label="Facebook"
@@ -194,9 +206,9 @@ export function Footer() {
                 </a>
               )}
               {storeSettings.socialMedia?.instagram?.enabled !== false && (
-                <a 
-                  href={storeSettings.socialMedia?.instagram?.url || '#'} 
-                  target="_blank" 
+                <a
+                  href={storeSettings.socialMedia?.instagram?.url || '#'}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] rounded-full flex items-center justify-center hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                   aria-label="Instagram"
@@ -205,9 +217,9 @@ export function Footer() {
                 </a>
               )}
               {storeSettings.socialMedia?.twitter?.enabled !== false && (
-                <a 
-                  href={storeSettings.socialMedia?.twitter?.url || '#'} 
-                  target="_blank" 
+                <a
+                  href={storeSettings.socialMedia?.twitter?.url || '#'}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-[#1DA1F2] rounded-full flex items-center justify-center hover:bg-[#1A91DA] transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
                   aria-label="Twitter"
@@ -216,9 +228,9 @@ export function Footer() {
                 </a>
               )}
               {storeSettings.socialMedia?.youtube?.enabled !== false && (
-                <a 
-                  href={storeSettings.socialMedia?.youtube?.url || '#'} 
-                  target="_blank" 
+                <a
+                  href={storeSettings.socialMedia?.youtube?.url || '#'}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-[#FF0000] rounded-full flex items-center justify-center hover:bg-[#CC0000] transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
                   aria-label="YouTube"
@@ -228,7 +240,7 @@ export function Footer() {
               )}
             </div>
           </div>
-          
+
           {/* Quick Links */}
           <div>
             <h4 className="text-lg font-semibold mb-6 text-gray-100" suppressHydrationWarning>
@@ -251,25 +263,39 @@ export function Footer() {
                   </span>
                 </Link>
               </li>
-              <li>
-                <Link href="/about" className="text-gray-300 hover:text-[#DAA520] transition-colors flex items-center gap-2" suppressHydrationWarning>
-                  <ArrowRight className="w-4 h-4" />
-                  <span suppressHydrationWarning>
-                    {mounted ? (language === 'ar' ? 'من نحن' : 'About Us') : 'من نحن'}
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-[#DAA520] transition-colors flex items-center gap-2" suppressHydrationWarning>
-                  <ArrowRight className="w-4 h-4" />
-                  <span suppressHydrationWarning>
-                    {mounted ? (language === 'ar' ? 'اتصل بنا' : 'Contact Us') : 'اتصل بنا'}
-                  </span>
-                </Link>
-              </li>
+              {pagesVisibility.about && (
+                <li>
+                  <Link href="/about" className="text-gray-300 hover:text-[#DAA520] transition-colors flex items-center gap-2" suppressHydrationWarning>
+                    <ArrowRight className="w-4 h-4" />
+                    <span suppressHydrationWarning>
+                      {mounted ? (language === 'ar' ? 'من نحن' : 'About Us') : 'من نحن'}
+                    </span>
+                  </Link>
+                </li>
+              )}
+              {pagesVisibility.contact && (
+                <li>
+                  <Link href="/contact" className="text-gray-300 hover:text-[#DAA520] transition-colors flex items-center gap-2" suppressHydrationWarning>
+                    <ArrowRight className="w-4 h-4" />
+                    <span suppressHydrationWarning>
+                      {mounted ? (language === 'ar' ? 'اتصل بنا' : 'Contact Us') : 'اتصل بنا'}
+                    </span>
+                  </Link>
+                </li>
+              )}
+              {pagesVisibility.terms && (
+                <li>
+                  <Link href="/terms" className="text-gray-300 hover:text-[#DAA520] transition-colors flex items-center gap-2" suppressHydrationWarning>
+                    <ArrowRight className="w-4 h-4" />
+                    <span suppressHydrationWarning>
+                      {mounted ? (language === 'ar' ? 'الشروط والخصوصية' : 'Terms & Privacy') : 'الشروط والخصوصية'}
+                    </span>
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
-          
+
           {/* Contact Info */}
           <div>
             <h4 className="text-lg font-semibold mb-6 text-gray-100" suppressHydrationWarning>
@@ -294,7 +320,7 @@ export function Footer() {
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs">📱</span>
                 </div>
-                <a 
+                <a
                   href={`https://wa.me/${whatsappNumber.replace('+', '')}?text=${encodeURIComponent(language === 'ar' ? 'مرحباً، أريد الاستفسار عن المنتجات' : 'Hello, I want to inquire about products')}`}
                   className="text-gray-300 hover:text-[#DAA520] transition-colors"
                   suppressHydrationWarning
@@ -308,7 +334,7 @@ export function Footer() {
           </div>
         </div>
       </div>
-      
+
       {/* Bottom Section */}
       <div className="border-t border-gray-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

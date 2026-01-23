@@ -6,6 +6,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { getFirstImageSrc } from '@/lib/image-utils';
 
 interface Product {
   id: number;
@@ -76,11 +77,11 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
         name: product.name,
         nameAr: product.name,
         price: product.price,
-        image: product.images[0]?.url || product.images[0] || '/uploads/good.png',
+        image: getFirstImageSrc(product.images as any, '/uploads/good.png'),
         quantity: 1,
         stockQuantity: product.stockQuantity,
       });
-      
+
       if (result.success) {
         showToast(
           language === 'ar' ? 'تم إضافة المنتج للسلة!' : 'Product added to cart!',
@@ -120,7 +121,7 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
   };
 
   return (
-    <section 
+    <section
       ref={heroRef}
       className="relative py-20 bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden"
     >
@@ -133,16 +134,15 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
-          
+
           {/* Left Block - Promotional Banner */}
-          <ScrollReveal 
-            direction="up" 
+          <ScrollReveal
+            direction="up"
             delay={200}
-            className={`space-y-8 transition-all duration-1000 ease-out ${
-              isVisible 
-                ? 'opacity-100 transform translate-y-0 translate-x-0' 
+            className={`space-y-8 transition-all duration-1000 ease-out ${isVisible
+                ? 'opacity-100 transform translate-y-0 translate-x-0'
                 : 'opacity-0 transform translate-y-12 -translate-x-12'
-            }`}
+              }`}
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium">
@@ -165,9 +165,9 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
                   </>
                 )}
               </h1>
-              
+
               <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-                {language === 'ar' 
+                {language === 'ar'
                   ? 'اكتشف أحدث صيحات الموضة العربية الأصيلة والأنيقة. مجموعة متنوعة من الأزياء التقليدية والحديثة تناسب جميع المناسبات.'
                   : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin eget tortor risus. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus.'
                 }
@@ -184,14 +184,13 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
           </ScrollReveal>
 
           {/* Right Block - Product Grid/Carousel */}
-          <ScrollReveal 
-            direction="up" 
+          <ScrollReveal
+            direction="up"
             delay={400}
-            className={`relative transition-all duration-1000 ease-out ${
-              isVisible 
-                ? 'opacity-100 transform translate-y-0 translate-x-0' 
+            className={`relative transition-all duration-1000 ease-out ${isVisible
+                ? 'opacity-100 transform translate-y-0 translate-x-0'
                 : 'opacity-0 transform translate-y-12 translate-x-12'
-            }`}
+              }`}
           >
             <div className="relative">
               {/* Product Grid */}
@@ -210,7 +209,7 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      
+
                       {/* Product Badges */}
                       <div className="absolute top-3 left-3 flex flex-col gap-1">
                         {product.isNew && (
@@ -244,10 +243,10 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
                       <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">
                         {product.name}
                       </h3>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-base font-bold text-[#DAA520]">
-                          {language === 'ar' 
+                          {language === 'ar'
                             ? `ج.م ${product.price.toLocaleString('en-US')}`
                             : `EGP ${product.price.toLocaleString('en-US')}`
                           }
@@ -272,22 +271,21 @@ export function ModernHeroOldStyle({ products }: ModernHeroOldStyleProps) {
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  
+
                   {/* Dots Indicator */}
                   <div className="flex space-x-2">
                     {featuredProducts.slice(0, 3).map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentSlide(index)}
-                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                          currentSlide === index 
-                            ? 'bg-purple-600 scale-125' 
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${currentSlide === index
+                            ? 'bg-purple-600 scale-125'
                             : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>
-                  
+
                   <button
                     onClick={() => setCurrentSlide((prev) => (prev + 1) % featuredProducts.length)}
                     className="bg-white text-gray-600 hover:text-purple-600 p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"

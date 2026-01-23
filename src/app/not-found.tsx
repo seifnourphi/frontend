@@ -16,10 +16,16 @@ export default function NotFound() {
   }, []);
 
   useEffect(() => {
+    if (countdown <= 0) {
+      router.push('/');
+    }
+  }, [countdown, router]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          router.push('/');
+          clearInterval(timer);
           return 0;
         }
         return prev - 1;
@@ -27,7 +33,7 @@ export default function NotFound() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [router]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
@@ -53,17 +59,17 @@ export default function NotFound() {
             {mounted ? (language === 'ar' ? 'الصفحة غير موجودة' : 'Page Not Found') : 'الصفحة غير موجودة'}
           </h2>
           <p className="text-lg text-gray-600 mb-2" suppressHydrationWarning>
-            {mounted 
-              ? (language === 'ar' 
-                  ? 'عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها.'
-                  : 'Sorry, the page you are looking for does not exist or has been moved.')
+            {mounted
+              ? (language === 'ar'
+                ? 'عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها.'
+                : 'Sorry, the page you are looking for does not exist or has been moved.')
               : 'عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها.'}
           </p>
           <p className="text-sm text-gray-500" suppressHydrationWarning>
-            {mounted 
-              ? (language === 'ar' 
-                  ? `سيتم إعادة توجيهك تلقائياً خلال ${countdown} ثانية...`
-                  : `You will be redirected automatically in ${countdown} seconds...`)
+            {mounted
+              ? (language === 'ar'
+                ? `سيتم إعادة توجيهك تلقائياً خلال ${countdown} ثانية...`
+                : `You will be redirected automatically in ${countdown} seconds...`)
               : `سيتم إعادة توجيهك تلقائياً خلال ${countdown} ثانية...`}
           </p>
         </div>
@@ -80,7 +86,7 @@ export default function NotFound() {
               {mounted ? (language === 'ar' ? 'العودة للصفحة الرئيسية' : 'Back to Homepage') : 'العودة للصفحة الرئيسية'}
             </span>
           </button>
-          
+
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-lg font-semibold border-2 border-gray-300 hover:border-[#DAA520] hover:text-[#DAA520] transition-all duration-300 shadow-md hover:shadow-lg"

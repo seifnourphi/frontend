@@ -3,7 +3,7 @@ const nextConfig = {
   // Security: Disable source maps in production to prevent source code exposure
   // Source maps can reveal file structure, code organization, and sometimes original source code
   productionBrowserSourceMaps: false,
-  
+
   // Disable source maps for server-side code as well
   // This prevents exposure of server-side code structure
   webpack: (config, { dev, isServer }) => {
@@ -29,11 +29,11 @@ const nextConfig = {
         config.externals = [config.externals, 'ioredis'];
       }
     }
-    
+
     if (!dev && !isServer) {
       // Disable source maps in production for client-side bundles
       config.devtool = false;
-      
+
       // Security: Minimize exposure of library names and versions
       // Use hashed chunk names instead of library names
       config.optimization = {
@@ -42,7 +42,7 @@ const nextConfig = {
         chunkIds: 'deterministic', // Use deterministic chunk IDs
         minimize: true, // Minify code to obfuscate library names
       };
-      
+
       // Remove console.log statements in production
       const TerserPlugin = require('terser-webpack-plugin');
       config.optimization.minimizer = [
@@ -55,42 +55,42 @@ const nextConfig = {
           },
         }),
       ];
-      
+
       // Obfuscate module paths in production
       config.output = {
         ...config.output,
         // Use hash-based chunk filenames to hide library names
-        chunkFilename: dev 
+        chunkFilename: dev
           ? 'static/chunks/[name].[hash].js'
           : 'static/chunks/[id].[contenthash].js',
-        filename: dev 
+        filename: dev
           ? 'static/chunks/[name].[hash].js'
           : 'static/chunks/[id].[contenthash].js',
       };
     }
     return config;
   },
-  
+
   // Additional security configurations
   poweredByHeader: false, // Remove X-Powered-By header
-  
+
   // Compress output
   compress: true,
-  
+
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
     domains: [],
   },
-  
+
   // Output configuration for better security
   output: 'standalone', // Use standalone output to reduce bundle size and exposure
-  
+
   // Experimental features - keep minimal for security
   experimental: {
     // Only enable necessary features
   },
-  
+
   // Rewrite /uploads to backend
   async rewrites() {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
@@ -101,7 +101,18 @@ const nextConfig = {
       },
     ];
   },
-  
+
+  // Redirect old admin path to the new standalone dashboard
+  async redirects() {
+    return [
+      {
+        source: '/admin/:path*',
+        destination: 'http://localhost:3001/:path*',
+        permanent: false, // Use temporary redirect during migration
+      },
+    ];
+  },
+
   // SECURITY FIX FOR REPORT 16: Configure Next.js to use CSP nonce
   // This allows Next.js to add nonce to script tags automatically
   // Note: Next.js 14 doesn't have built-in CSP nonce support, so we handle it in middleware

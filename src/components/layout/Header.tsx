@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Search, Menu, X, Globe, ChevronDown } from 'lucide-react';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
@@ -12,11 +13,17 @@ import { AccountToggle } from '@/components/ui/AccountToggle';
 import { WishlistToggle } from '@/components/ui/WishlistToggle';
 import { AnnouncementBar } from '@/components/ui/AnnouncementBar';
 
+
 export function Header() {
   const pathname = usePathname();
   const { language, t, setLanguage } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  
+  const [pagesVisibility, setPagesVisibility] = useState({
+    about: true,
+    contact: true,
+    terms: true
+  });
+
   // Hide header in admin pages
   if (pathname?.startsWith('/admin')) {
     return null;
@@ -42,15 +49,21 @@ export function Header() {
     // During SSR, always use 'ar' to match server output
     // After hydration, use the actual language
     const currentLanguage = (typeof window !== 'undefined' && mounted) ? language : 'ar';
-    return [
+    const links = [
       { name: currentLanguage === 'ar' ? 'الرئيسية' : 'Home', href: '/' },
-      { name: currentLanguage === 'ar' ? 'من نحن' : 'About', href: '/about' },
+      { id: 'about', name: currentLanguage === 'ar' ? 'من نحن' : 'About', href: '/about' },
       { name: currentLanguage === 'ar' ? 'المنتجات' : 'Products', href: '/products' },
       { name: currentLanguage === 'ar' ? 'السلة' : 'Cart', href: '/cart' },
       { name: currentLanguage === 'ar' ? 'الدفع' : 'Checkout', href: '/checkout' },
-      { name: currentLanguage === 'ar' ? 'اتصل بنا' : 'Contact', href: '/contact' },
+      { id: 'contact', name: currentLanguage === 'ar' ? 'اتصل بنا' : 'Contact', href: '/contact' },
     ];
-  }, [language, mounted]);
+
+    return links.filter(link => {
+      if (link.id === 'about') return pagesVisibility.about;
+      if (link.id === 'contact') return pagesVisibility.contact;
+      return true;
+    });
+  }, [language, mounted, pagesVisibility]);
 
   // Cache for store settings to prevent excessive requests
   const settingsCacheRef = useRef<{ data: any; timestamp: number } | null>(null);
@@ -62,7 +75,8 @@ export function Header() {
     if (!forceRefresh && settingsCacheRef.current) {
       const cacheAge = Date.now() - settingsCacheRef.current.timestamp;
       if (cacheAge < CACHE_DURATION) {
-        setStoreSettings(settingsCacheRef.current.data);
+        setStoreSettings(settingsCacheRef.current.data.store);
+        setPagesVisibility(settingsCacheRef.current.data.visibility);
         setIsLoadingSettings(false);
         return;
       }
@@ -75,66 +89,18 @@ export function Header() {
 
     isFetchingRef.current = true;
     try {
-      const response = await fetch(`/api/settings/store?t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        let settings = null;
-        // Handle both response formats
-        if (data.storeSettings) {
-          settings = data.storeSettings;
-        } else if (data.data?.storeSettings) {
-          settings = data.data.storeSettings;
-        } else {
-          // Use defaults if no settings found
-          settings = {
-            name: 'RIDAA Fashion',
-            nameAr: 'رِداء للأزياء',
-            phone: '+20 100 000 0000',
-            email: 'ridaa.store.team@gmail.com',
-            address: '',
-            showAdvertisements: true,
-            socialMedia: {
-              facebook: { enabled: false, url: '' },
-              instagram: { enabled: false, url: '' },
-              twitter: { enabled: false, url: '' },
-              youtube: { enabled: false, url: '' }
-            }
-          };
-        }
-        
-        // Update cache
-        settingsCacheRef.current = {
-          data: settings,
-          timestamp: Date.now()
-        };
-        setStoreSettings(settings);
-      } else {
-        // On error, use cached data or defaults
-        if (settingsCacheRef.current) {
-          setStoreSettings(settingsCacheRef.current.data);
-        } else {
-          setStoreSettings({
-            name: 'RIDAA Fashion',
-            nameAr: 'رِداء للأزياء',
-            phone: '+20 100 000 0000',
-            email: 'ridaa.store.team@gmail.com',
-            address: '',
-            showAdvertisements: true,
-            socialMedia: {
-              facebook: { enabled: false, url: '' },
-              instagram: { enabled: false, url: '' },
-              twitter: { enabled: false, url: '' },
-              youtube: { enabled: false, url: '' }
-            }
-          });
-        }
-      }
-    } catch (error) {
-      // Use cached data or defaults on error
-      if (settingsCacheRef.current) {
-        setStoreSettings(settingsCacheRef.current.data);
-      } else {
-        setStoreSettings({
+      // Fetch both store and pages content
+      const [storeRes, pagesRes] = await Promise.all([
+        fetch(`/api/settings/store?t=${Date.now()}`),
+        fetch(`/api/settings/pages-content?t=${Date.now()}`)
+      ]);
+
+      let storeData = null;
+      let visibilityData = { about: true, contact: true, terms: true };
+
+      if (storeRes.ok) {
+        const data = await storeRes.json();
+        storeData = data.storeSettings || data.data?.storeSettings || {
           name: 'RIDAA Fashion',
           nameAr: 'رِداء للأزياء',
           phone: '+20 100 000 0000',
@@ -147,7 +113,35 @@ export function Header() {
             twitter: { enabled: false, url: '' },
             youtube: { enabled: false, url: '' }
           }
-        });
+        };
+      }
+
+      if (pagesRes.ok) {
+        const data = await pagesRes.json();
+        const pages = data.pagesContent || data.data?.pagesContent;
+        if (pages) {
+          visibilityData = {
+            about: pages.about?.enabled !== false,
+            contact: pages.contact?.enabled !== false,
+            terms: pages.terms?.enabled !== false
+          };
+        }
+      }
+
+      // Update cache and state
+      settingsCacheRef.current = {
+        data: { store: storeData, visibility: visibilityData },
+        timestamp: Date.now()
+      };
+      setStoreSettings(storeData);
+      setPagesVisibility(visibilityData);
+
+    } catch (error) {
+      console.error('Error fetching header settings:', error);
+      // Fallback to cache or defaults
+      if (settingsCacheRef.current) {
+        setStoreSettings(settingsCacheRef.current.data.store);
+        setPagesVisibility(settingsCacheRef.current.data.visibility);
       }
     } finally {
       setIsLoadingSettings(false);
@@ -201,18 +195,18 @@ export function Header() {
 
   return (
     <>
-        {/* Main Header */}
-        <div className="bg-[#111827] border-b border-gray-600 py-4">
+      {/* Main Header */}
+      <div className="bg-[#111827] border-b border-gray-600 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex flex-col items-center no-underline">
               <div className="flex flex-col items-center mb-1">
-                <span className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{fontFamily: 'serif', width: '100%', textAlign: 'center'}}>
+                <span className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{ fontFamily: 'serif', width: '100%', textAlign: 'center' }}>
                   R<span className="text-2xl">i</span>DAA
                 </span>
-                <div 
-                  className="mt-1 header-logo-line" 
+                <div
+                  className="mt-1 header-logo-line"
                   style={{
                     width: '115%',
                     height: '2.5px',
@@ -243,11 +237,11 @@ export function Header() {
                   type="search"
                   autoComplete="off"
                   placeholder={language === 'ar' ? 'ابحث عن المنتجات...' : 'Search for products...'}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white  text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 bg-white  text-gray-900 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
                   onFocus={() => setIsSearchOpen(true)}
                   suppressHydrationWarning
                 />
-                <button 
+                <button
                   onClick={() => setIsSearchOpen(true)}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#DAA520] text-white p-2 rounded-lg hover:bg-[#B8860B] transition-colors"
                 >
@@ -258,6 +252,7 @@ export function Header() {
 
             {/* Right Side - User Actions */}
             <div className="flex items-center gap-4">
+
               {/* Language Toggle */}
               <LanguageToggle />
 
@@ -282,8 +277,8 @@ export function Header() {
         </div>
       </div>
 
-        {/* Navigation Menu */}
-        <div className="bg-[#111827] border-b border-gray-600">
+      {/* Navigation Menu */}
+      <div className="bg-[#111827] border-b border-gray-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="hidden md:flex items-center space-x-8 py-4">
             {navigation.map((item) => (

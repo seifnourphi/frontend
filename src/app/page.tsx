@@ -19,7 +19,7 @@ interface Product {
   discountPercent?: number | null;
   originalPrice?: number;
   description: string;
-  images: string[] | Array<{url: string; alt?: string; altAr?: string}>;
+  images: string[] | Array<{ url: string; alt?: string; altAr?: string }>;
   isFeatured: boolean;
   isNew: boolean;
   isBestseller: boolean;
@@ -70,11 +70,11 @@ export default function HomePage() {
     let timeoutId: NodeJS.Timeout | null = null;
     let fallbackTimeout: NodeJS.Timeout | null = null;
     let productsFetched = false;
-    
+
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        
+
         // Set a shorter timeout for Burp Suite compatibility
         timeoutId = setTimeout(() => {
           if (!abortController.signal.aborted) {
@@ -85,7 +85,7 @@ export default function HomePage() {
             setProducts([]);
           }
         }, 8000); // 8 seconds timeout (shorter for Burp Suite)
-        
+
         // Try to fetch products with better error handling for different browsers
         let response: Response;
         try {
@@ -108,11 +108,11 @@ export default function HomePage() {
           }
           return; // Exit early on fetch error
         }
-        
+
         if (timeoutId) clearTimeout(timeoutId);
-        
+
         if (!isMounted) return;
-        
+
         if (response.ok) {
           let data: any;
           try {
@@ -128,14 +128,14 @@ export default function HomePage() {
             }
             return;
           }
-          
+
           // Handle both formats: {success: true, data: [...]} and {products: [...]}
-          const productsArray = data.data && Array.isArray(data.data) 
-            ? data.data 
+          const productsArray = data.data && Array.isArray(data.data)
+            ? data.data
             : data.products && Array.isArray(data.products)
-            ? data.products
-            : null;
-          
+              ? data.products
+              : null;
+
           if (!productsArray) {
             if (isMounted) {
               setProducts([]);
@@ -143,35 +143,35 @@ export default function HomePage() {
             }
             return;
           }
-          
+
           // Transform products to match expected format
           const transformedProducts = productsArray.map((product: any) => {
-            const productId = product.id 
-              || product._id 
-              || product.productId 
-              || product.sku 
+            const productId = product.id
+              || product._id
+              || product.productId
+              || product.sku
               || Math.random().toString(36).substr(2, 9);
             const productName = product.name || 'Product';
             const productNameAr = product.nameAr || product.name || 'Product';
             const categoryData = product.category || {};
             const normalizedCategory = {
-              id: categoryData.id 
-                || categoryData._id 
-                || product.categoryId 
+              id: categoryData.id
+                || categoryData._id
+                || product.categoryId
                 || 'unknown',
-              name: categoryData.name 
-                || product.categoryName 
+              name: categoryData.name
+                || product.categoryName
                 || 'Category',
-              nameAr: categoryData.nameAr 
-                || product.categoryNameAr 
-                || categoryData.name 
-                || product.categoryName 
+              nameAr: categoryData.nameAr
+                || product.categoryNameAr
+                || categoryData.name
+                || product.categoryName
                 || 'Category',
               slug: categoryData.slug || product.categorySlug || 'category'
             };
             // Handle images - keep as objects with url, alt, altAr structure
             // This matches what the API returns and what ProductCard expects
-            let imageArray: Array<{url: string; alt?: string; altAr?: string}> = [];
+            let imageArray: Array<{ url: string; alt?: string; altAr?: string }> = [];
             if (product.images && Array.isArray(product.images)) {
               imageArray = product.images.map((img: any) => {
                 // If it's already an object with url property, use it
@@ -192,9 +192,9 @@ export default function HomePage() {
                 }
                 // Invalid image, return null to filter out
                 return null;
-              }).filter((img: any) => img !== null) as Array<{url: string; alt?: string; altAr?: string}>;
+              }).filter((img: any) => img !== null) as Array<{ url: string; alt?: string; altAr?: string }>;
             }
-            
+
             // If no images, use smart placeholder based on product name
             if (imageArray.length === 0) {
               // Use smart placeholder based on product type
@@ -230,7 +230,7 @@ export default function HomePage() {
                 // Default placeholder
                 return 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop&crop=center';
               };
-              
+
               imageArray = [{
                 url: getSmartPlaceholder(productName),
                 alt: productName,
@@ -238,10 +238,10 @@ export default function HomePage() {
               }];
               // Silent - no console warning needed
             }
-            
+
             // Create a new array to ensure each product has its own image array
             const finalImageArray = imageArray.map(img => ({ ...img }));
-            
+
             return {
               id: productId,
               name: productName,
@@ -264,23 +264,23 @@ export default function HomePage() {
               variantCombinations: product.variantCombinations || []
             };
           });
-          
+
           // Check if all products have the same image URL (potential issue)
           if (transformedProducts.length > 1) {
             const firstProductFirstImage = transformedProducts[0].images[0];
-            const firstImageUrl = typeof firstProductFirstImage === 'string' 
-              ? firstProductFirstImage 
+            const firstImageUrl = typeof firstProductFirstImage === 'string'
+              ? firstProductFirstImage
               : firstProductFirstImage?.url;
-            
+
             const allSameImage = transformedProducts.every(p => {
               const pFirstImage = p.images[0];
               const pImageUrl = typeof pFirstImage === 'string' ? pFirstImage : pFirstImage?.url;
               return pImageUrl === firstImageUrl;
             });
-            
+
             // Check if all products have the same first image URL
           }
-          
+
           if (isMounted) {
             setProducts(transformedProducts);
             productsFetched = true; // Mark as fetched
@@ -303,13 +303,13 @@ export default function HomePage() {
         }
       } catch (error: any) {
         if (!isMounted) return;
-        
+
         if (error.name === 'AbortError') {
           // AbortError is expected when component unmounts or in React strict mode
           // Don't treat it as an error or update state
           return;
         }
-        
+
         if (isMounted) {
           setProducts([]);
           setIsLoading(false);
@@ -321,7 +321,7 @@ export default function HomePage() {
         if (timeoutId) clearTimeout(timeoutId);
       }
     };
-    
+
     // Fallback timeout - only trigger if products weren't fetched after 12 seconds
     fallbackTimeout = setTimeout(() => {
       if (!productsFetched && isMounted) {
@@ -330,10 +330,10 @@ export default function HomePage() {
         // Don't clear if products were already fetched
       }
     }, 12000);
-    
+
     // Immediate execution
     fetchProducts();
-    
+
     return () => {
       isMounted = false;
       // Only abort if not already aborted
@@ -350,7 +350,7 @@ export default function HomePage() {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 100);
-      
+
       // Hide scroll indicator after scrolling
       if (scrollY > 200) {
         setShowScrollIndicator(false);
@@ -378,7 +378,7 @@ export default function HomePage() {
       const timer = setTimeout(() => {
         setShowProductSections(true);
       }, 500); // Wait 500ms after hero loads
-      
+
       return () => {
         clearTimeout(timer);
       };
@@ -391,7 +391,7 @@ export default function HomePage() {
       const timer = setTimeout(() => {
         setShowFeatureSections(true);
       }, 1500); // Wait 1.5 seconds after hero loads to show reviews section
-      
+
       return () => {
         clearTimeout(timer);
       };
@@ -404,16 +404,16 @@ export default function HomePage() {
       const errorTimeout = setTimeout(() => {
         setShowError(true);
       }, 12000); // Show error after 12 seconds
-      
+
       return () => clearTimeout(errorTimeout);
     } else {
       setShowError(false);
     }
   }, [isLoading]);
-  
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#DAA520] mx-auto mb-4"></div>
           <h2 className="text-2xl font-semibold text-gray-700 mb-2" suppressHydrationWarning>
@@ -425,7 +425,7 @@ export default function HomePage() {
           {showError && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800" suppressHydrationWarning>
-                {mounted ? (language === 'ar' 
+                {mounted ? (language === 'ar'
                   ? 'يبدو أن التحميل يستغرق وقتاً طويلاً. يرجى تحديث الصفحة أو التحقق من الاتصال بالإنترنت.'
                   : 'Loading is taking longer than expected. Please refresh the page or check your internet connection.') : 'يبدو أن التحميل يستغرق وقتاً طويلاً. يرجى تحديث الصفحة أو التحقق من الاتصال بالإنترنت.'}
               </p>
@@ -448,16 +448,16 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-primary">
       {/* FashionStore Hero Section with Curved Animations */}
-      <FashionStoreHero 
-        products={products.map(p => ({ 
-          ...p, 
-          id: p.id.toString(), 
-          image: Array.isArray(p.images) && p.images.length > 0 
+      <FashionStoreHero
+        products={products.map(p => ({
+          ...p,
+          id: p.id.toString(),
+          image: Array.isArray(p.images) && p.images.length > 0
             ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0].url || '/uploads/good.png')
-            : '/uploads/good.png', 
-          category: p.category?.name || 'Category' 
+            : '/uploads/good.png',
+          category: p.category?.name || 'Category'
         }))}
         onLoadingChange={setIsHeroLoading}
       />
@@ -468,7 +468,7 @@ export default function HomePage() {
           {products.length > 0 ? (
             <ProductSections products={products} />
           ) : (
-            <section className="py-20 bg-white">
+            <section className="py-20 bg-primary">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h2 className="text-2xl font-semibold text-gray-700 mb-4">
                   {language === 'ar' ? 'لا توجد منتجات متاحة حالياً' : 'No products available at the moment'}
@@ -483,12 +483,11 @@ export default function HomePage() {
       )}
 
       {/* Single View All Products Button - Above Testimonials */}
-      <section 
-        className={`py-12 bg-gradient-to-b from-white to-gray-50 transition-all duration-700 ease-out ${
-          showViewAllButton 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 translate-y-8'
-        }`}
+      <section
+        className={`py-12 bg-gradient-to-b from-white to-gray-50 transition-all duration-700 ease-out ${showViewAllButton
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 translate-y-8'
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center relative">
@@ -503,36 +502,34 @@ export default function HomePage() {
                 </div>
               </div>
             )}
-            
-            <button 
-              className={`group relative overflow-hidden px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
-                isScrolled 
-                  ? 'bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white shadow-xl hover:shadow-[#DAA520]/30 scale-105' 
-                  : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-[#DAA520] hover:to-[#B8860B] hover:text-white shadow-md hover:shadow-lg'
-              } hover:scale-105 hover:-translate-y-1 animate-pulse`}
+
+            <button
+              className={`group relative overflow-hidden px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 transform ${isScrolled
+                ? 'bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white shadow-xl hover:shadow-[#DAA520]/30 scale-105'
+                : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-[#DAA520] hover:to-[#B8860B] hover:text-white shadow-md hover:shadow-lg'
+                } hover:scale-105 hover:-translate-y-1 animate-pulse`}
               onClick={() => window.open('/products', '_blank')}
             >
               {/* Animated Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-[#DAA520] to-[#B8860B] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              
+
               {/* Button Content */}
               <div className="relative flex items-center gap-3">
                 <span className="transition-all duration-300">
                   {language === 'ar' ? 'عرض جميع المنتجات' : 'View All Products'}
                 </span>
-                <ChevronRight className={`w-5 h-5 transition-all duration-300 ${
-                  isScrolled ? 'group-hover:translate-x-1 group-hover:rotate-12' : 'group-hover:translate-x-1'
-                }`} />
+                <ChevronRight className={`w-5 h-5 transition-all duration-300 ${isScrolled ? 'group-hover:translate-x-1 group-hover:rotate-12' : 'group-hover:translate-x-1'
+                  }`} />
               </div>
-              
+
               {/* Shine Effect */}
               <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-              
+
               {/* Sparkle Effects */}
               <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 animate-ping" />
               <div className="absolute bottom-2 left-2 w-1 h-1 bg-white rounded-full opacity-0 group-hover:opacity-100 animate-ping delay-150" />
             </button>
-            
+
             {/* Floating Elements - Smaller and More Dynamic */}
             <div className="absolute -top-3 -left-3 w-6 h-6 bg-[#DAA520] rounded-full opacity-20 animate-bounce" />
             <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-[#B8860B] rounded-full opacity-30 animate-bounce delay-200" />
@@ -543,12 +540,11 @@ export default function HomePage() {
       </section>
 
       {/* Feature Sections */}
-      <div 
-        className={`transition-all duration-700 ease-out ${
-          showFeatureSections 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 translate-y-8'
-        }`}
+      <div
+        className={`transition-all duration-700 ease-out ${showFeatureSections
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 translate-y-8'
+          }`}
       >
         <FeatureSections />
       </div>

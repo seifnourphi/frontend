@@ -58,8 +58,8 @@ export function AccountToggle() {
             {/* User Avatar */}
             <div className="w-7 h-7 bg-gray-600 rounded-full flex items-center justify-center text-gray-300 text-xs font-bold shadow-sm overflow-hidden">
               {user.avatar ? (
-                <img 
-                  src={getImageSrc(user.avatar, '')} 
+                <img
+                  src={getImageSrc(user.avatar, '')}
                   alt={getUserDisplayName()}
                   className="w-full h-full rounded-full object-cover"
                   onError={(e) => {
@@ -96,7 +96,9 @@ export function AccountToggle() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-3 w-72 bg-white rounded-xl shadow-xl border border-gray-100 py-3 z-50 backdrop-blur-sm">
+        <div className="fixed md:absolute right-4 md:right-0 top-20 md:top-full mt-3 bg-white rounded-xl shadow-xl border border-gray-100 py-3 z-50 transition-none"
+          style={{ width: 'min(288px, calc(100vw - 2rem))' }}>
+
           {user ? (
             // Logged in menu
             <>
@@ -104,8 +106,8 @@ export function AccountToggle() {
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-[#DAA520] to-[#B8860B] rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg">
                     {user.avatar ? (
-                      <img 
-                        src={getImageSrc(user.avatar, '')} 
+                      <img
+                        src={getImageSrc(user.avatar, '')}
                         alt={getUserDisplayName()}
                         className="w-full h-full rounded-full object-cover"
                         onError={(e) => {
@@ -140,7 +142,7 @@ export function AccountToggle() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Profile Actions */}
               <div className="py-2">
                 <Link
@@ -151,7 +153,7 @@ export function AccountToggle() {
                   <UserCircle className="w-5 h-5" />
                   <span className="font-medium">{language === 'ar' ? 'ملفي الشخصي' : 'My Profile'}</span>
                 </Link>
-                
+
                 <Link
                   href="/account/orders"
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-[#DAA520]/5 hover:text-[#DAA520] transition-all duration-200 rounded-lg mx-2"
@@ -160,7 +162,7 @@ export function AccountToggle() {
                   <ShoppingBag className="w-5 h-5" />
                   <span className="font-medium">{language === 'ar' ? 'طلباتي' : 'My Orders'}</span>
                 </Link>
-                
+
                 <Link
                   href="/account/wishlist"
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-[#DAA520]/5 hover:text-[#DAA520] transition-all duration-200 rounded-lg mx-2"
@@ -190,7 +192,7 @@ export function AccountToggle() {
                   <Settings className="w-5 h-5" />
                   <span className="font-medium">{language === 'ar' ? 'الإعدادات' : 'Settings'}</span>
                 </Link>
-                
+
                 <Link
                   href="/account/security"
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-[#DAA520]/5 hover:text-[#DAA520] transition-all duration-200 rounded-lg mx-2"
@@ -200,9 +202,9 @@ export function AccountToggle() {
                   <span className="font-medium">{language === 'ar' ? 'الأمان' : 'Security'}</span>
                 </Link>
               </div>
-              
+
               <div className="border-t border-gray-100 my-2"></div>
-              
+
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 rounded-lg mx-2 w-full text-left font-medium"
@@ -222,7 +224,7 @@ export function AccountToggle() {
                   {language === 'ar' ? 'سجل دخولك أو أنشئ حساباً جديداً' : 'Sign in or create a new account'}
                 </p>
               </div>
-              
+
               <div className="px-4 space-y-2">
                 <Link
                   href="/auth/login"
@@ -232,7 +234,7 @@ export function AccountToggle() {
                   <LogIn className="w-5 h-5" />
                   {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
                 </Link>
-                
+
                 <Link
                   href="/auth/register"
                   className="flex items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-[#DAA520] bg-[#DAA520]/10 hover:bg-[#DAA520]/20 border border-[#DAA520]/30 transition-all duration-200 rounded-lg"
@@ -251,9 +253,9 @@ export function AccountToggle() {
                   {language === 'ar' ? 'تتبع الطلب' : 'Track Order'}
                 </Link>
               </div>
-              
+
               <div className="border-t border-gray-100 my-3"></div>
-              
+
               <div className="px-4 py-3">
                 <p className="text-xs font-semibold text-gray-500 mb-3 text-center">
                   {language === 'ar' ? 'مزايا الحساب:' : 'Account Benefits:'}

@@ -83,11 +83,10 @@ export function ProductFilters({ onFiltersChange, categories }: ProductFiltersPr
           <div className="space-y-2">
             <button
               onClick={() => setSelectedCategory('')}
-              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                selectedCategory === ''
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${selectedCategory === ''
                   ? 'bg-[#DAA520] text-white'
                   : 'bg-[#3e5258]/20 text-white hover:bg-[#3e5258]/40'
-              }`}
+                }`}
             >
               {language === 'ar' ? 'جميع الأقسام' : 'All Categories'}
             </button>
@@ -95,11 +94,10 @@ export function ProductFilters({ onFiltersChange, categories }: ProductFiltersPr
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  selectedCategory === category.id
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${selectedCategory === category.id
                     ? 'bg-[#DAA520] text-white'
                     : 'bg-[#3e5258]/20 text-white hover:bg-[#3e5258]/40'
-                }`}
+                  }`}
               >
                 {language === 'ar' ? ((category as any).nameAr || category.name) : category.name}
               </button>
@@ -173,7 +171,7 @@ export function ProductFilters({ onFiltersChange, categories }: ProductFiltersPr
         <div className="flex gap-3 pt-4">
           <button
             onClick={handleFilterChange}
-            className="flex-1 bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white px-4 py-3 rounded-xl font-semibold hover:from-[#B8860B] hover:to-[#DAA520] transition-all duration-300 shadow-lg hover:shadow-[#DAA520]/25"
+            className="flex-1 bg-[#DAA520] text-white px-4 py-3 rounded-xl font-semibold hover:bg-[#B8860B] transition-all duration-300 shadow-md hover:shadow-lg"
           >
             {language === 'ar' ? 'تطبيق الفلاتر' : 'Apply Filters'}
           </button>

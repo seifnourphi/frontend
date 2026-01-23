@@ -80,142 +80,117 @@ export function WishlistToggle() {
         )}
       </button>
 
+      {/* Wishlist Dropdown */}
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/20 z-[9998]"
+          <div
+            className="fixed inset-0 bg-transparent z-[9998]"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Wishlist Panel */}
-          <div 
-            className="absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] max-h-[80vh] overflow-hidden flex flex-col"
+          <div
+            className="fixed md:absolute top-20 md:top-full right-4 md:right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-[9999] max-h-[80vh] overflow-hidden flex flex-col"
             style={{
-              right: '0',
-              left: 'auto',
-              maxWidth: 'calc(100vw - 2rem)',
-              width: language === 'ar' ? 'min(384px, calc(100vw - 2rem))' : '384px',
+              width: 'min(380px, calc(100vw - 2rem))',
             }}
           >
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {language === 'ar' ? 'المفضلة' : 'Wishlist'}
-              </h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 mt-1">
-              {language === 'ar' 
-                ? `${getWishlistCount()} منتج في المفضلة`
-                : `${getWishlistCount()} items in wishlist`
-              }
-            </p>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {items.length === 0 ? (
-              <div className="p-6 text-center">
-                <Heart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">
-                  {language === 'ar' ? 'المفضلة فارغة' : 'Your wishlist is empty'}
-                </p>
-                <p className="text-gray-400 text-xs mt-1">
-                  {language === 'ar' ? 'أضف منتجات للمفضلة' : 'Add products to your wishlist'}
-                </p>
+            {/* Header */}
+            <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+              <div className="flex items-center justify-between font-bold">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-[#DAA520]" />
+                  <h3 className="text-gray-900 text-sm">
+                    {language === 'ar' ? 'المفضلة' : 'Wishlist'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
               </div>
-            ) : (
-              <div className="p-2">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    {/* Product Image */}
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={decodeHtmlEntities(item.image || '')}
-                        alt={language === 'ar' ? item.nameAr : item.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=100&h=100&fit=crop&crop=center';
-                        }}
-                      />
-                    </div>
+            </div>
 
-                    {/* Product Info */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-900 truncate">
-                        {language === 'ar' ? item.nameAr : item.name}
-                      </h4>
-                      <p className="text-sm text-[#DAA520] font-semibold">
-                        {formatPrice(item.price)}
-                      </p>
-                    </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto py-2 px-3">
+              {items.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Heart className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">
+                    {language === 'ar' ? 'المفضلة فارغة' : 'Your wishlist is empty'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors group">
+                      {/* Product Image */}
+                      <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={decodeHtmlEntities(item.image || '')}
+                          alt={language === 'ar' ? item.nameAr : item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=100&h=100&fit=crop&crop=center';
+                          }}
+                        />
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-1">
-                      <Link
-                        href={`/products/${item.slug}`}
-                        onClick={() => setIsOpen(false)}
-                        className="p-1 text-gray-400 hover:text-[#DAA520] transition-colors"
-                        title={language === 'ar' ? 'اختر المقاس واللون' : 'Choose size & color'}
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </Link>
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-900 truncate">
+                          {language === 'ar' ? item.nameAr : item.name}
+                        </h4>
+                        <p className="text-xs text-[#DAA520] font-bold mt-0.5">
+                          {formatPrice(item.price)}
+                        </p>
+                        <Link
+                          href={`/products/${item.slug}`}
+                          onClick={() => setIsOpen(false)}
+                          className="text-[10px] text-gray-400 hover:text-[#DAA520] font-medium"
+                        >
+                          {language === 'ar' ? 'عرض المنتج' : 'View Product'}
+                        </Link>
+                      </div>
+
+                      {/* Actions */}
                       <button
                         onClick={() => handleRemoveFromWishlist(item.productId)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                        title={language === 'ar' ? 'حذف من المفضلة' : 'Remove from wishlist'}
+                        className="text-gray-200 hover:text-red-500 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Footer */}
-          {items.length > 0 && (
-            <div className="border-t border-gray-200 bg-gray-50">
-              {/* Return to Products Link */}
-              <Link
-                href="/products"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700 hover:text-[#DAA520] transition-all duration-200 py-3 px-4 border-b border-gray-200 hover:bg-white group"
-              >
-                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-                <span>{language === 'ar' ? 'العودة للمنتجات' : 'Return to Products'}</span>
-              </Link>
-
-              {/* Actions */}
-              <div className="p-4">
-                <div className="flex gap-2">
+            {/* Footer */}
+            {items.length > 0 && (
+              <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleClearWishlist}
-                    className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    className="py-2 px-3 rounded-lg border border-red-50 text-red-500 font-bold text-center text-xs hover:bg-red-50 transition-all"
                   >
                     {language === 'ar' ? 'مسح الكل' : 'Clear All'}
                   </button>
                   <Link
                     href="/wishlist"
                     onClick={() => setIsOpen(false)}
-                    className="flex-1 px-3 py-2 text-sm bg-[#DAA520] text-white rounded-md hover:bg-[#B8860B] transition-colors text-center flex items-center justify-center gap-1"
+                    className="py-2 px-3 rounded-lg bg-[#DAA520] text-white font-bold text-center text-xs hover:bg-[#B8860B] transition-all shadow-md shadow-[#DAA520]/10 flex items-center justify-center gap-1"
                   >
                     {language === 'ar' ? 'عرض المفضلة' : 'View Wishlist'}
-                    <ChevronRight className="w-4 h-4" />
+                    {language === 'ar' ? <ArrowLeft className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                   </Link>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </>
       )}
 
@@ -240,7 +215,7 @@ export function WishlistToggle() {
                   </button>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  {language === 'ar' 
+                  {language === 'ar'
                     ? 'هل أنت متأكد من حذف جميع المنتجات من المفضلة؟ لا يمكن التراجع عن هذا الإجراء.'
                     : 'Are you sure you want to remove all items from your wishlist? This action cannot be undone.'
                   }

@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import { useRouter } from 'next/navigation';
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
   Calendar,
   Camera,
   Save,
@@ -35,7 +36,8 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const { language } = useLanguage();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const { showToast } = useToast();
   const { csrfToken, loading: csrfLoading } = useCSRF();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -55,6 +57,15 @@ export default function ProfilePage() {
   }, []);
 
   useEffect(() => {
+    if (!authLoading && !user && mounted) {
+      const currentPath = window.location.pathname;
+      const currentHash = window.location.hash;
+      const redirectUrl = `${currentPath}${currentHash}`;
+      router.push(`/auth/login?redirect=${encodeURIComponent(redirectUrl)}`);
+    }
+  }, [user, authLoading, router, mounted]);
+
+  useEffect(() => {
     const fetchProfile = async () => {
       if (!user) {
         setIsLoading(false);
@@ -63,7 +74,7 @@ export default function ProfilePage() {
 
       try {
         setIsLoading(true);
-        
+
         // Get token from localStorage or cookies
         let token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token && typeof window !== 'undefined') {
@@ -82,7 +93,7 @@ export default function ProfilePage() {
         const headers: HeadersInit = {
           'Content-Type': 'application/json',
         };
-        
+
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
@@ -95,7 +106,7 @@ export default function ProfilePage() {
 
         if (response.ok) {
           const data = await response.json();
-          
+
           // Handle both response formats: { user: {...} } or { success: true, data: { profile: {...} } }
           let profileData: any = null;
           if (data.user) {
@@ -105,18 +116,18 @@ export default function ProfilePage() {
             // Old format: nested profile
             profileData = data.data.profile;
           }
-          
+
           if (profileData) {
             // Initialize newsletter ref from profile if not already set
             if (newsletterUpdateRef.current === null && profileData.subscribedToNewsletter !== undefined) {
               newsletterUpdateRef.current = profileData.subscribedToNewsletter;
             }
-            
+
             // Update emailVerified value from API response
-            const emailVerifiedValue = profileData.emailVerified !== undefined 
-              ? profileData.emailVerified 
+            const emailVerifiedValue = profileData.emailVerified !== undefined
+              ? profileData.emailVerified
               : (user?.emailVerified || false);
-            
+
             // Update user in AuthProvider if emailVerified changed
             // Use setTimeout to avoid setState during render
             if (user && user.emailVerified !== emailVerifiedValue) {
@@ -127,7 +138,7 @@ export default function ProfilePage() {
                 });
               }, 0);
             }
-            
+
             const profileDataObj = {
               firstName: profileData.firstName || '',
               lastName: profileData.lastName || '',
@@ -137,8 +148,8 @@ export default function ProfilePage() {
               dateOfBirth: (user as any)?.dateOfBirth || '',
               avatar: profileData.avatar || '',
               emailVerified: emailVerifiedValue,
-              subscribedToNewsletter: profileData.subscribedToNewsletter !== undefined 
-                ? profileData.subscribedToNewsletter 
+              subscribedToNewsletter: profileData.subscribedToNewsletter !== undefined
+                ? profileData.subscribedToNewsletter
                 : (user?.subscribedToNewsletter || false),
               createdAt: (user as any)?.createdAt || new Date().toISOString()
             };
@@ -260,11 +271,11 @@ export default function ProfilePage() {
           token = decodeURIComponent(tokenMatch[1]);
         }
       }
-      
+
       if (!token) {
         showToast(
-          language === 'ar' 
-            ? 'يرجى تسجيل الدخول أولاً' 
+          language === 'ar'
+            ? 'يرجى تسجيل الدخول أولاً'
             : 'Please login first',
           'error',
           3000
@@ -272,16 +283,16 @@ export default function ProfilePage() {
         setIsSaving(false);
         return;
       }
-      
+
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-      
+
       // Add Authorization header if token exists
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      
+
       // Include pending avatar URL if exists
       const profileDataToSend: any = {
         firstName: profile.firstName,
@@ -291,23 +302,23 @@ export default function ProfilePage() {
         subscribedToNewsletter: profile.subscribedToNewsletter,
         csrfToken,
       };
-      
+
       // If there's a pending avatar URL, include it in the update
       // Note: The avatar is already uploaded, we just need to update the profile reference
       // The backend should already have the avatar saved, so we don't need to send it again
-      
+
       const response = await fetch('/api/account/profile', {
         method: 'PATCH',
         headers,
         body: JSON.stringify(profileDataToSend),
         credentials: 'include',
       });
-      
+
       if (response.status === 401) {
         // Token expired or invalid - redirect to login
         showToast(
-          language === 'ar' 
-            ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى' 
+          language === 'ar'
+            ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى'
             : 'Session expired. Please login again',
           'error',
           3000
@@ -322,15 +333,15 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Update user in AuthProvider and localStorage
         if (data.success && data.data && data.data.profile) {
           const profileData = data.data.profile;
-          
+
           // Update user object with new profile data
           if (user) {
-            const updatedUser = { 
-              ...user, 
+            const updatedUser = {
+              ...user,
               name: profileData.name,
               firstName: profileData.firstName,
               lastName: profileData.lastName,
@@ -342,7 +353,7 @@ export default function ProfilePage() {
             };
             updateUser(updatedUser);
           }
-          
+
           // Update local profile state
           const updatedProfile = {
             ...profile,
@@ -356,13 +367,13 @@ export default function ProfilePage() {
           };
           setProfile(updatedProfile);
           setOriginalProfile(updatedProfile); // Update original values after successful save
-          
+
           // Clear pending avatar URL after successful save
           if (pendingAvatarUrl) {
             setPendingAvatarUrl(null);
           }
         }
-        
+
         showToast(
           language === 'ar' ? 'تم حفظ الملف الشخصي بنجاح' : 'Profile saved successfully',
           'success',
@@ -373,7 +384,7 @@ export default function ProfilePage() {
         const errorData = await response.json().catch(() => ({}));
         // Profile update error
         showToast(
-          language === 'ar' 
+          language === 'ar'
             ? `حدث خطأ أثناء حفظ الملف الشخصي: ${errorData.error || errorData.details || 'خطأ غير معروف'}`
             : `Error saving profile: ${errorData.error || errorData.details || 'Unknown error'}`,
           'error',
@@ -442,7 +453,7 @@ export default function ProfilePage() {
       );
     };
     reader.readAsDataURL(file);
-    
+
     // Reset input
     event.target.value = '';
   };
@@ -466,7 +477,7 @@ export default function ProfilePage() {
           }
         }
       }
-      
+
       if (!token) {
         showToast(
           language === 'ar' ? 'يرجى تسجيل الدخول أولاً' : 'Please login first',
@@ -476,7 +487,7 @@ export default function ProfilePage() {
         setIsUploadingAvatar(false);
         return;
       }
-      
+
       if (csrfLoading || !csrfToken) {
         showToast(
           language === 'ar' ? 'جاري تحميل رمز الأمان...' : 'Loading security token...',
@@ -490,7 +501,7 @@ export default function ProfilePage() {
       // Convert base64 to blob
       const response = await fetch(croppedImage);
       const blob = await response.blob();
-      
+
       const formData = new FormData();
       formData.append('avatar', blob, 'avatar.jpg');
       formData.append('csrfToken', csrfToken);
@@ -510,14 +521,14 @@ export default function ProfilePage() {
       if (uploadResponse.ok) {
         const data = await uploadResponse.json();
         const updatedAvatar = data.avatarUrl || data.avatar;
-        
+
         // Store uploaded avatar URL temporarily (don't update profile yet)
         setPendingAvatarUrl(updatedAvatar);
-        
+
         // Close cropper only after successful upload
         setShowCropper(false);
         setCropImage(null);
-        
+
         showToast(
           language === 'ar' ? 'تم رفع الصورة بنجاح. اضغط على "حفظ" لحفظ التغييرات' : 'Image uploaded successfully. Click "Save" to save changes',
           'success',
@@ -525,20 +536,20 @@ export default function ProfilePage() {
         );
       } else {
         const errorData = await uploadResponse.json().catch(() => ({ error: 'Unknown error' }));
-        
+
         let errorMessage = language === 'ar' ? 'حدث خطأ أثناء رفع الصورة' : 'Error uploading avatar';
         if (uploadResponse.status === 401) {
-          errorMessage = language === 'ar' 
-            ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى' 
+          errorMessage = language === 'ar'
+            ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى'
             : 'Session expired. Please login again';
         } else if (uploadResponse.status === 403) {
-          errorMessage = language === 'ar' 
-            ? 'غير مصرح لك برفع الصورة. يرجى التحقق من صلاحياتك' 
+          errorMessage = language === 'ar'
+            ? 'غير مصرح لك برفع الصورة. يرجى التحقق من صلاحياتك'
             : 'Forbidden: You are not authorized to upload avatar';
         } else if (errorData.error) {
           errorMessage = errorData.error;
         }
-        
+
         showToast(
           errorMessage,
           'error',
@@ -654,7 +665,7 @@ export default function ProfilePage() {
             <div className="relative">
               <div className="w-24 h-24 bg-[#DAA520] rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
                 {(pendingAvatarUrl || profile.avatar) ? (
-                  <img 
+                  <img
                     src={
                       (() => {
                         const avatarToShow = pendingAvatarUrl || profile.avatar;
@@ -662,8 +673,8 @@ export default function ProfilePage() {
                         // Use getImageSrc to handle both Base64 object and string URL
                         return getImageSrc(avatarToShow, '');
                       })()
-                    } 
-                    alt="Profile" 
+                    }
+                    alt="Profile"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.currentTarget;
@@ -719,12 +730,11 @@ export default function ProfilePage() {
               </h2>
               <p className="text-lg text-gray-600 mb-2 break-words overflow-wrap-anywhere">{escapeHtml(profile.email)}</p>
               <div className="flex items-center justify-center md:justify-end gap-2">
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  profile.emailVerified 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {profile.emailVerified 
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${profile.emailVerified
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+                  }`}>
+                  {profile.emailVerified
                     ? (language === 'ar' ? 'متحقق' : 'Verified')
                     : (language === 'ar' ? 'غير متحقق' : 'Unverified')
                   }
@@ -795,19 +805,19 @@ export default function ProfilePage() {
             </div>
 
             {/* Newsletter Subscription */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2" id="newsletter">
+
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {language === 'ar' ? 'الاشتراك في النشرة الإخبارية' : 'Newsletter Subscription'}
               </label>
               <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
                 <Bell className={`w-5 h-5 ${profile.subscribedToNewsletter ? 'text-green-600' : 'text-gray-400'}`} />
                 <div className="flex-1 flex items-center justify-between">
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    profile.subscribedToNewsletter 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {profile.subscribedToNewsletter 
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${profile.subscribedToNewsletter
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-600'
+                    }`}>
+                    {profile.subscribedToNewsletter
                       ? (language === 'ar' ? 'موافق على تلقي العروض والخصومات' : 'Subscribed to Offers & Discounts')
                       : (language === 'ar' ? 'غير موافق على تلقي العروض' : 'Not Subscribed')
                     }
@@ -818,23 +828,23 @@ export default function ProfilePage() {
                       checked={profile.subscribedToNewsletter || false}
                       onChange={async (e) => {
                         const newValue = e.target.checked;
-                        
+
                         // Update ref to track manual update
                         newsletterUpdateRef.current = newValue;
-                        
+
                         setProfile({
                           ...profile,
                           subscribedToNewsletter: newValue
                         });
-                        
+
                         // Auto-save newsletter subscription
                         try {
                           if (csrfLoading || !csrfToken) {
                             // CSRF token not available for newsletter update - no sensitive data logged
                             showToast(
-                              language === 'ar' 
-          ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.' 
-          : 'Your session has expired. Please sign in again.',
+                              language === 'ar'
+                                ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.'
+                                : 'Your session has expired. Please sign in again.',
                               'error',
                               3000
                             );
@@ -851,13 +861,13 @@ export default function ProfilePage() {
                               token = decodeURIComponent(tokenMatch[1]);
                             }
                           }
-                          
+
                           // Newsletter toggle - no sensitive data logged
-                          
+
                           if (!token) {
                             showToast(
-                              language === 'ar' 
-                                ? 'يرجى تسجيل الدخول أولاً' 
+                              language === 'ar'
+                                ? 'يرجى تسجيل الدخول أولاً'
                                 : 'Please login first',
                               'error',
                               3000
@@ -872,14 +882,14 @@ export default function ProfilePage() {
                             }
                             return;
                           }
-                          
+
                           const headers: HeadersInit = {
                             'Content-Type': 'application/json',
                           };
                           if (token) {
                             headers['Authorization'] = `Bearer ${token}`;
                           }
-                          
+
                           const response = await fetch('/api/account/profile', {
                             method: 'PATCH',
                             headers,
@@ -889,14 +899,14 @@ export default function ProfilePage() {
                             }),
                             credentials: 'include',
                           });
-                          
+
                           // Newsletter toggle response - no sensitive data logged
-                          
+
                           if (response.status === 401) {
                             // Token expired or invalid - redirect to login
                             showToast(
-                              language === 'ar' 
-                                ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى' 
+                              language === 'ar'
+                                ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى'
                                 : 'Session expired. Please login again',
                               'error',
                               3000
@@ -919,18 +929,18 @@ export default function ProfilePage() {
                           if (response.ok) {
                             const data = await response.json();
                             if (data.user && user) {
-                              const updatedUser = { 
-                                ...user, 
+                              const updatedUser = {
+                                ...user,
                                 ...data.user,
-                                subscribedToNewsletter: data.user.subscribedToNewsletter !== undefined 
-                                  ? data.user.subscribedToNewsletter 
+                                subscribedToNewsletter: data.user.subscribedToNewsletter !== undefined
+                                  ? data.user.subscribedToNewsletter
                                   : newValue
                               };
                               updateUser(updatedUser);
-                              
+
                               // Update ref to match saved value
                               newsletterUpdateRef.current = updatedUser.subscribedToNewsletter || false;
-                              
+
                               // Update local profile state to match the updated user
                               if (profile) {
                                 setProfile({
@@ -940,9 +950,9 @@ export default function ProfilePage() {
                               }
                             }
                             showToast(
-                              language === 'ar' 
-                                ? newValue 
-                                  ? 'تم الاشتراك في النشرة الإخبارية بنجاح' 
+                              language === 'ar'
+                                ? newValue
+                                  ? 'تم الاشتراك في النشرة الإخبارية بنجاح'
                                   : 'تم إلغاء الاشتراك من النشرة الإخبارية'
                                 : newValue
                                   ? 'Successfully subscribed to newsletter'
@@ -961,7 +971,7 @@ export default function ProfilePage() {
                             }
                             const errorData = await response.json().catch(() => ({}));
                             showToast(
-                              language === 'ar' 
+                              language === 'ar'
                                 ? 'حدث خطأ أثناء تحديث الاشتراك'
                                 : 'Error updating subscription',
                               'error',
@@ -987,7 +997,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2 px-4">
-                {language === 'ar' 
+                {language === 'ar'
                   ? 'يمكنك تفعيل أو إلغاء الاشتراك في أي وقت لتلقي العروض والخصومات عبر البريد الإلكتروني'
                   : 'You can subscribe or unsubscribe at any time to receive offers and discounts via email'
                 }

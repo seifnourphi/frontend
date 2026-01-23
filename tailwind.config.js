@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,39 +9,44 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+        // Chrome Auto Dark Mode Integration
+        background: {
+          DEFAULT: 'rgb(var(--color-background) / <alpha-value>)',
+          secondary: 'rgb(var(--color-background-secondary) / <alpha-value>)',
         },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+        foreground: {
+          DEFAULT: 'rgb(var(--color-foreground) / <alpha-value>)',
+          secondary: 'rgb(var(--color-foreground-secondary) / <alpha-value>)',
+          muted: 'rgb(var(--color-foreground-muted) / <alpha-value>)',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'rgb(var(--color-card) / <alpha-value>)',
         },
+        border: {
+          DEFAULT: 'rgb(var(--color-border) / <alpha-value>)',
+          light: 'rgb(var(--color-border-light) / <alpha-value>)',
+        },
+        primary: {
+          DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
+        },
+        link: {
+          DEFAULT: 'rgb(var(--color-link) / <alpha-value>)',
+        },
+      },
+      backgroundColor: {
+        primary: 'rgb(var(--color-background) / <alpha-value>)',
+        secondary: 'rgb(var(--color-background-secondary) / <alpha-value>)',
+        card: 'rgb(var(--color-card) / <alpha-value>)',
+      },
+      textColor: {
+        primary: 'rgb(var(--color-foreground) / <alpha-value>)',
+        secondary: 'rgb(var(--color-foreground-secondary) / <alpha-value>)',
+        muted: 'rgb(var(--color-foreground-muted) / <alpha-value>)',
+        link: 'rgb(var(--color-link) / <alpha-value>)',
+      },
+      borderColor: {
+        DEFAULT: 'rgb(var(--color-border) / <alpha-value>)',
+        light: 'rgb(var(--color-border-light) / <alpha-value>)',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -53,6 +59,7 @@ module.exports = {
         cairo: ['var(--font-cairo)', 'system-ui', 'sans-serif'],
         tajawal: ['var(--font-tajawal)', 'system-ui', 'sans-serif'],
         poppins: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
       },
       animation: {
         'bounce-gentle': 'bounce 2s infinite',

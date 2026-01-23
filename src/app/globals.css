@@ -1,6 +1,7 @@
 /* Dubai Font - Using CDN only (removed local file references to prevent 404 errors) */
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -12,6 +13,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -23,6 +25,7 @@
     opacity: 0;
     transform: translateX(-50px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -34,6 +37,7 @@
     opacity: 0;
     transform: translateX(50px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -45,6 +49,7 @@
     opacity: 0;
     transform: scale(0.8);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -55,16 +60,19 @@
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -75,13 +83,16 @@
     opacity: 0;
     transform: scale(0.3);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.05);
   }
+
   70% {
     transform: scale(0.9);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -93,6 +104,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -104,6 +116,7 @@
     opacity: 0;
     transform: translateX(-50px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -115,6 +128,7 @@
     opacity: 0;
     transform: translateX(50px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -126,6 +140,7 @@
     opacity: 0;
     transform: translateX(-50px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -137,6 +152,7 @@
     opacity: 0;
     transform: translateY(30px) translateX(-20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) translateX(0);
@@ -148,6 +164,7 @@
     opacity: 0;
     transform: translateY(30px) translateX(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) translateX(0);
@@ -155,10 +172,12 @@
 }
 
 @keyframes glow {
+
   0%,
   100% {
     box-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(218, 165, 32, 0.6);
   }
@@ -208,31 +227,59 @@
   animation: fadeInUpStaggerRight 0.8s ease-out;
 }
 
+@keyframes drawerIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerOut {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-drawer-in {
+  animation: drawerIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-drawer-out {
+  animation: drawerOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
 }
 
 @layer base {
   :root {
-    --background: 38 15% 15%;
-    --foreground: 45 100% 85%;
-    --card: 38 15% 15%;
-    --card-foreground: 45 100% 85%;
-    --popover: 38 15% 15%;
-    --popover-foreground: 45 100% 85%;
-    --primary: 45 100% 50%;
-    --primary-foreground: 38 15% 15%;
-    --secondary: 38 15% 20%;
-    --secondary-foreground: 45 100% 85%;
-    --muted: 38 15% 20%;
-    --muted-foreground: 45 50% 60%;
-    --accent: 38 15% 20%;
-    --accent-foreground: 45 100% 85%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 43 72% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 38 15% 25%;
-    --input: 38 15% 25%;
-    --ring: 45 100% 50%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 43 72% 45%;
     --radius: 0.5rem;
   }
 
@@ -264,25 +311,25 @@
   }
 
   .dark {
-    --background: 38 15% 15%;
-    --foreground: 45 100% 85%;
-    --card: 38 15% 15%;
-    --card-foreground: 45 100% 85%;
-    --popover: 38 15% 15%;
-    --popover-foreground: 45 100% 85%;
-    --primary: 45 100% 50%;
-    --primary-foreground: 38 15% 15%;
-    --secondary: 38 15% 20%;
-    --secondary-foreground: 45 100% 85%;
-    --muted: 38 15% 20%;
-    --muted-foreground: 45 50% 60%;
-    --accent: 38 15% 20%;
-    --accent-foreground: 45 100% 85%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 43 72% 45%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 38 15% 25%;
-    --input: 38 15% 25%;
-    --ring: 45 100% 50%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 43 72% 45%;
   }
 }
 
@@ -347,6 +394,7 @@
     0% {
       background-position: -200px 0;
     }
+
     100% {
       background-position: calc(200px + 100%) 0;
     }
@@ -470,9 +518,10 @@
     @apply bg-gray-200 animate-pulse;
   }
 
-  /* WhatsApp button styles */
+  /* WhatsApp button styles - Professional Teal */
   .whatsapp-btn {
-    @apply bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 focus-ring;
+    background-color: #128C7E;
+    @apply hover:bg-[#075E54] text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-teal-900/10 hover:shadow-xl hover:-translate-y-0.5 focus:ring-2 focus:ring-[#128C7E] focus:ring-offset-2;
   }
 
   /* Admin styles */
@@ -512,6 +561,7 @@
     0% {
       transform: translateX(-25%);
     }
+
     100% {
       transform: translateX(0);
     }
@@ -553,20 +603,16 @@
   }
 
   .vticker-viewport {
-    -webkit-mask-image: linear-gradient(
-      to top,
-      transparent 0,
-      #000 6px,
-      #000 calc(100% - 6px),
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to top,
-      transparent 0,
-      #000 6px,
-      #000 calc(100% - 6px),
-      transparent 100%
-    );
+    -webkit-mask-image: linear-gradient(to top,
+        transparent 0,
+        #000 6px,
+        #000 calc(100% - 6px),
+        transparent 100%);
+    mask-image: linear-gradient(to top,
+        transparent 0,
+        #000 6px,
+        #000 calc(100% - 6px),
+        transparent 100%);
     display: flex;
     align-items: center;
   }
@@ -581,14 +627,17 @@
       transform: translateY(100%);
       opacity: 0;
     }
+
     13% {
       transform: translateY(0);
       opacity: 1;
     }
+
     70% {
       transform: translateY(0);
       opacity: 1;
     }
+
     100% {
       transform: translateY(-100%);
       opacity: 0;
@@ -612,15 +661,13 @@
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      transparent 15%,
-      #daa520 35%,
-      #daa520 65%,
-      transparent 85%,
-      transparent 100%
-    ) !important;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        transparent 15%,
+        #daa520 35%,
+        #daa520 65%,
+        transparent 85%,
+        transparent 100%) !important;
     box-shadow: 0 0 4px #daa520, 0 0 8px rgba(218, 165, 32, 0.5) !important;
   }
 
@@ -630,6 +677,7 @@
       opacity: 0;
       transform: translateY(30px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -641,6 +689,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -652,6 +701,7 @@
       opacity: 0;
       transform: translateX(-30px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -663,6 +713,7 @@
       opacity: 0;
       transform: translateX(30px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -674,6 +725,7 @@
       opacity: 0;
       transform: scale(0.9);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -685,6 +737,7 @@
       opacity: 0;
       transform: translateY(30px) scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
@@ -696,6 +749,7 @@
       opacity: 0;
       transform: translateX(-50px) scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: translateX(0) scale(1);
@@ -707,6 +761,7 @@
       opacity: 0;
       transform: translateX(50px) scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: translateX(0) scale(1);
@@ -718,6 +773,7 @@
       opacity: 0;
       transform: scale(0.8);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -729,9 +785,11 @@
       opacity: 0;
       transform: scale(0.9) translateY(20px);
     }
+
     50% {
       opacity: 0.5;
     }
+
     100% {
       opacity: 1;
       transform: scale(1) translateY(0);
@@ -760,8 +818,8 @@ section img {
 
 /* Force transparent backgrounds on all image containers in hero section */
 section[class*="hero"] div,
-section[class*="hero"] > div > div,
-section[class*="hero"] > div > div > div {
+section[class*="hero"]>div>div,
+section[class*="hero"]>div>div>div {
   background-color: transparent !important;
   background: transparent !important;
 }

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { FileText, Shield, Lock, Eye, CreditCard, Truck, RotateCcw, Users, Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TermsPage() {
+  const router = useRouter();
   const { language } = useLanguage();
   const [storeSettings, setStoreSettings] = useState({
     phone: '',
@@ -14,6 +16,7 @@ export default function TermsPage() {
     nameAr: ''
   });
   const [termsContent, setTermsContent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStoreSettings = async () => {
@@ -25,12 +28,6 @@ export default function TermsPage() {
         }
       } catch (error) {
         console.error('Error fetching store settings:', error);
-        setStoreSettings({
-          phone: '+20 100 000 0000',
-          email: 'ridaa.store.team@gmail.com',
-          name: 'RIDAA Fashion',
-          nameAr: 'رِداء للأزياء'
-        });
       }
     };
 
@@ -41,16 +38,22 @@ export default function TermsPage() {
           const data = await response.json();
           if (data.success && data.pagesContent?.terms) {
             setTermsContent(data.pagesContent.terms);
+            // Redirect if disabled
+            if (data.pagesContent.terms?.enabled === false) {
+              router.push('/');
+            }
           }
         }
       } catch (error) {
         console.error('Error fetching terms content:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchStoreSettings();
     fetchTermsContent();
-  }, []);
+  }, [router]);
 
   // Default content if API fails
   const defaultTermsContent = {
@@ -188,7 +191,7 @@ export default function TermsPage() {
       content: {
         title: language === 'ar' ? content.termsTitleAr : content.termsTitleEn,
         lastUpdated: language === 'ar' ? content.termsLastUpdatedAr : content.termsLastUpdatedEn,
-        sections: content.termsSections.map((section: any) => ({
+        sections: (content.termsSections || []).map((section: any) => ({
           subtitle: language === 'ar' ? section.subtitleAr : section.subtitleEn,
           text: language === 'ar' ? section.textAr : section.textEn
         }))
@@ -201,7 +204,7 @@ export default function TermsPage() {
       content: {
         title: language === 'ar' ? content.privacyTitleAr : content.privacyTitleEn,
         lastUpdated: language === 'ar' ? content.privacyLastUpdatedAr : content.privacyLastUpdatedEn,
-        sections: content.privacySections.map((section: any) => ({
+        sections: (content.privacySections || []).map((section: any) => ({
           subtitle: language === 'ar' ? section.subtitleAr : section.subtitleEn,
           text: language === 'ar' ? section.textAr : section.textEn
         }))
@@ -213,12 +216,12 @@ export default function TermsPage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-[#DAA520] to-[#B8860B] py-24 relative overflow-hidden animate-fade-in">
-        <div className="absolute inset-0 opacity-10 pointer-events-none select-none" 
+        <div className="absolute inset-0 opacity-10 pointer-events-none select-none"
           style={{
-            backgroundImage: 'url(/uploads/1761573409020-island-night-moon-scenery-digital-art-8k-wallpaper-uhdpaper.com-289@0@j.jpg)', 
-            backgroundSize: 'cover', 
+            backgroundImage: 'url(/uploads/1761573409020-island-night-moon-scenery-digital-art-8k-wallpaper-uhdpaper.com-289@0@j.jpg)',
+            backgroundSize: 'cover',
             backgroundPosition: 'center'
-          }} 
+          }}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 animate-slide-down">

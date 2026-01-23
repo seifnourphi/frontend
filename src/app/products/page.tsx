@@ -6,6 +6,7 @@ import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ShoppingCart, Heart, Eye, Star, ChevronLeft, ChevronRight, Grid, List, Plus } from 'lucide-react';
+import { getImageSrc } from '@/lib/image-utils';
 
 interface Product {
   id: string;
@@ -17,11 +18,11 @@ interface Product {
   salePrice?: number | null;
   discountPercent?: number | null;
   images: { url: string; alt?: string; altAr?: string }[];
-  category: { 
+  category: {
     id: string;
-    name: string; 
-    nameAr: string; 
-    slug: string 
+    name: string;
+    nameAr: string;
+    slug: string
   };
   stockQuantity: number;
   slug: string;
@@ -56,15 +57,15 @@ export default function ProductsPage() {
   const [allCategories, setAllCategories] = useState<Category[]>([]); // All categories from API
   const [categories, setCategories] = useState<Category[]>([]); // Filtered categories with products
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Calculate max price from products (use display price which is sale price if available)
-  const maxPrice = products.length > 0 
+  const maxPrice = products.length > 0
     ? Math.ceil(Math.max(...products.map(p => {
-        const displayPrice = (p.salePrice && p.salePrice > 0) ? p.salePrice : p.price;
-        return displayPrice;
-      }), 500) / 50) * 50 // Round up to nearest 50
+      const displayPrice = (p.salePrice && p.salePrice > 0) ? p.salePrice : p.price;
+      return displayPrice;
+    }), 500) / 50) * 50 // Round up to nearest 50
     : 500;
-  
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceRange, setPriceRange] = useState({ min: 0, max: maxPrice });
@@ -79,7 +80,7 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [productsPerPage, setProductsPerPage] = useState(24);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Variant modal state
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
@@ -98,44 +99,54 @@ export default function ProductsPage() {
           'Accept': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // Handle both formats: {success: true, data: [...]} and {products: [...]}
-        const productsArray = data.data && Array.isArray(data.data) 
-          ? data.data 
+        const productsArray = data.data && Array.isArray(data.data)
+          ? data.data
           : data.products && Array.isArray(data.products)
-          ? data.products
-          : [];
+            ? data.products
+            : [];
         const transformedProducts = productsArray.map((product: any) => {
-          const productId = product.id 
-            || product._id 
-            || product.productId 
-            || product.sku 
+          const productId = product.id
+            || product._id
+            || product.productId
+            || product.sku
             || Math.random().toString(36).substr(2, 9);
           const productName = product.name || 'Product';
           const productNameAr = product.nameAr || product.name || 'Product';
           const categoryData = product.category || {};
           const normalizedCategory = {
-            id: categoryData.id 
-              || categoryData._id 
-              || product.categoryId 
+            id: categoryData.id
+              || categoryData._id
+              || product.categoryId
               || 'unknown',
-            name: categoryData.name 
-              || product.categoryName 
+            name: categoryData.name
+              || product.categoryName
               || 'Category',
-            nameAr: categoryData.nameAr 
-              || product.categoryNameAr 
-              || categoryData.name 
-              || product.categoryName 
+            nameAr: categoryData.nameAr
+              || product.categoryNameAr
+              || categoryData.name
+              || product.categoryName
               || 'Category',
             slug: categoryData.slug || product.categorySlug || 'category'
           };
           // Handle images - can be array of strings or array of objects
           let imageArray: Array<{ url: string; alt?: string; altAr?: string }> = [];
-          
+
           if (product.images && Array.isArray(product.images)) {
             imageArray = product.images.map((img: any) => {
+              // Handle Base64 format (data + contentType)
+              if (typeof img === 'object' && img !== null && img.data && img.contentType) {
+                return {
+                  url: img.url || '', // Keep url if exists
+                  data: img.data, // Preserve Base64 data
+                  contentType: img.contentType, // Preserve content type
+                  alt: img.alt || product.name,
+                  altAr: img.altAr || product.nameAr || product.name,
+                };
+              }
               // If it's already an object with url property
               if (typeof img === 'object' && img !== null && img.url) {
                 return {
@@ -155,7 +166,7 @@ export default function ProductsPage() {
               return null;
             }).filter((img: any) => img !== null);
           }
-          
+
           // If no images, use smart placeholder based on product name
           if (imageArray.length === 0) {
             // Use smart placeholder based on product type
@@ -191,7 +202,7 @@ export default function ProductsPage() {
               // Default placeholder
               return 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop&crop=center';
             };
-            
+
             imageArray = [{
               url: getSmartPlaceholder(productName),
               alt: productName,
@@ -199,7 +210,7 @@ export default function ProductsPage() {
             }];
             // Silent - no console warning needed
           }
-          
+
           return {
             ...product,
             id: productId,
@@ -230,10 +241,10 @@ export default function ProductsPage() {
         const data = await response.json();
         const fetchedCategories = data.categories || data.data?.categories || [];
         setAllCategories(fetchedCategories);
-        }
-      } catch (error) {
-        // Silent error handling
       }
+    } catch (error) {
+      // Silent error handling
+    }
   };
 
   // Filter categories to only show those with products (dynamically)
@@ -245,12 +256,12 @@ export default function ProductsPage() {
           .map(p => p.category?.id)
           .filter(id => id && id !== 'unknown')
       );
-      
+
       // Filter categories to only include those with products
-      const categoriesWithProducts = allCategories.filter(cat => 
+      const categoriesWithProducts = allCategories.filter(cat =>
         categoryIdsWithProducts.has(cat.id)
       );
-      
+
       setCategories(categoriesWithProducts);
     } else if (allCategories.length > 0 && products.length === 0) {
       // If no products yet, show all categories
@@ -270,7 +281,7 @@ export default function ProductsPage() {
       const categoryParam = urlParams.get('category');
       if (categoryParam) {
         // Try to match by ID (string or number)
-        const matchingCategory = categories.find(c => 
+        const matchingCategory = categories.find(c =>
           String(c.id) === String(categoryParam) || c.slug === categoryParam
         );
         if (matchingCategory) {
@@ -298,7 +309,7 @@ export default function ProductsPage() {
     if (selectedCategory !== 'All' && product.category.id !== selectedCategory) {
       return false;
     }
-    
+
     // Price range filter - use display price (sale price if available, otherwise regular price)
     const displayPrice = (product.salePrice && product.salePrice > 0) ? product.salePrice : product.price;
     if (appliedPriceRange.min && displayPrice < appliedPriceRange.min) {
@@ -307,7 +318,7 @@ export default function ProductsPage() {
     if (appliedPriceRange.max && displayPrice > appliedPriceRange.max) {
       return false;
     }
-    
+
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -317,32 +328,32 @@ export default function ProductsPage() {
         return false;
       }
     }
-    
+
     // Stock filter
     if (inStockOnly && product.stockQuantity <= 0) {
       return false;
     }
-    
+
     // New products filter
     if (showNewOnly && !product.isNew) {
       return false;
     }
-    
+
     // Bestseller filter
     if (showBestsellerOnly && !product.isBestseller) {
       return false;
     }
-    
+
     // Featured filter
     if (showFeaturedOnly && !product.isFeatured) {
       return false;
     }
-    
+
     // On sale filter
     if (showOnSaleOnly && (!product.salePrice || product.salePrice <= 0)) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -351,7 +362,7 @@ export default function ProductsPage() {
     const getDisplayPrice = (product: Product) => {
       return (product.salePrice && product.salePrice > 0) ? product.salePrice : product.price;
     };
-    
+
     switch (sortBy) {
       case 'price-low':
         return getDisplayPrice(a) - getDisplayPrice(b);
@@ -391,7 +402,7 @@ export default function ProductsPage() {
   const hasStockForCombination = (size?: string, color?: string): boolean => {
     if (!selectedProductForModal) return false;
     if (!size && !color) return selectedProductForModal.stockQuantity > 0;
-    
+
     // Use variantCombinations if available (new system)
     if (selectedProductForModal.variantCombinations && selectedProductForModal.variantCombinations.length > 0) {
       // If both size and color are provided, find exact match
@@ -402,7 +413,7 @@ export default function ProductsPage() {
         if (matchingCombo) {
           return matchingCombo.stock > 0;
         }
-      } 
+      }
       // If only size is provided, check if any combination with this size has stock
       else if (size) {
         const matchingCombos = selectedProductForModal.variantCombinations.filter(combo => combo.size === size);
@@ -414,12 +425,12 @@ export default function ProductsPage() {
         return matchingCombos.some(combo => combo.stock > 0);
       }
     }
-    
+
     // Fallback: Use old variants system (for legacy products)
     if (size && color) {
       const sizeVariant = selectedProductForModal.variants.find((v: any) => v.type === 'SIZE' && v.value === size);
       const colorVariant = selectedProductForModal.variants.find((v: any) => v.type === 'COLOR' && v.value === color);
-      
+
       // Check if both variants have stock defined
       if (sizeVariant?.stock !== undefined) {
         return sizeVariant.stock > 0;
@@ -438,7 +449,7 @@ export default function ProductsPage() {
         return colorVariant.stock > 0;
       }
     }
-    
+
     return selectedProductForModal.stockQuantity > 0;
   };
 
@@ -469,7 +480,7 @@ export default function ProductsPage() {
       'mint': '#98FF98',
       'lavender': '#E6E6FA',
     };
-    
+
     const normalizedColor = colorName.toLowerCase().trim();
     return colorMap[normalizedColor] || colorName;
   };
@@ -477,7 +488,7 @@ export default function ProductsPage() {
   // Get available stock for selected combination
   const getAvailableStock = (): number => {
     if (!selectedProductForModal) return 0;
-    
+
     // Priority 1: Use variantCombinations (new system) if available
     if (selectedProductForModal.variantCombinations && selectedProductForModal.variantCombinations.length > 0) {
       // If we have both size and color selected, find exact match
@@ -487,13 +498,13 @@ export default function ProductsPage() {
           const colorMatch = combo.color === selectedColor;
           return sizeMatch && colorMatch;
         });
-        
+
         if (matchingCombo) {
           return matchingCombo.stock;
         }
       } else if (selectedSize) {
         // Only size selected, find matching combos and sum stock
-        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo => 
+        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo =>
           combo.size === selectedSize
         );
         if (matchingCombos.length > 0) {
@@ -501,60 +512,58 @@ export default function ProductsPage() {
         }
       } else if (selectedColor) {
         // Only color selected, find matching combos and sum stock
-        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo => 
+        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo =>
           combo.color === selectedColor
         );
         if (matchingCombos.length > 0) {
           return matchingCombos.reduce((sum, combo) => sum + combo.stock, 0);
         }
       }
-      
+
       // If no match, return 0 (this specific combination doesn't exist)
       return 0;
     }
-    
+
     // Priority 2: Fallback to old variants system (legacy products)
     let availableStock = selectedProductForModal.stockQuantity;
-    
+
     if (selectedSize || selectedColor) {
-      const selectedVariant = selectedProductForModal.variants.find((v: any) => 
+      const selectedVariant = selectedProductForModal.variants.find((v: any) =>
         (selectedSize && v.type === 'SIZE' && v.value === selectedSize) ||
         (selectedColor && v.type === 'COLOR' && v.value === selectedColor)
       );
-      
+
       if (selectedVariant && selectedVariant.stock !== undefined) {
         availableStock = selectedVariant.stock;
       }
     }
-    
+
     return availableStock;
   };
 
   const handleAddToCartFromModal = () => {
     if (!selectedProductForModal) return;
-    
+
     const sizes = selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE');
     const colors = selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR');
-    
+
     // Validate selection
     if ((sizes.length > 0 && !selectedSize) || (colors.length > 0 && !selectedColor)) {
       return;
     }
-    
+
     // Validate stock before adding to cart
     if (!hasStockForCombination(selectedSize || undefined, selectedColor || undefined)) {
       return;
     }
-    
-    const displayPrice = (selectedProductForModal.salePrice && selectedProductForModal.salePrice > 0) 
-      ? selectedProductForModal.salePrice 
+
+    const displayPrice = (selectedProductForModal.salePrice && selectedProductForModal.salePrice > 0)
+      ? selectedProductForModal.salePrice
       : selectedProductForModal.price;
-    
+
     const firstImage = selectedProductForModal.images[0];
-    const imageUrl = firstImage 
-      ? (typeof firstImage === 'string' ? firstImage : (firstImage?.url || '/uploads/good.png'))
-      : '/uploads/good.png';
-    
+    const imageUrl = getImageSrc(firstImage as any, '/uploads/good.png');
+
     addToCart({
       name: language === 'ar' ? selectedProductForModal.nameAr : selectedProductForModal.name,
       nameAr: selectedProductForModal.nameAr,
@@ -565,13 +574,13 @@ export default function ProductsPage() {
       selectedSize: selectedSize || undefined,
       selectedColor: selectedColor || undefined,
     });
-    
+
     setShowVariantModal(false);
     setSelectedProductForModal(null);
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-primary">
       <style jsx>{`
         @keyframes slideUpFade {
           from {
@@ -603,9 +612,9 @@ export default function ProductsPage() {
         .product-card-animate:nth-child(12) { animation-delay: 0.6s; }
         .product-card-animate:nth-child(n+13) { animation-delay: 0.65s; }
       `}</style>
-      
+
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-default">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex items-center space-x-2 text-sm">
             <a href="/" className="text-gray-900 hover:text-gray-700" suppressHydrationWarning>
@@ -620,7 +629,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Page Title */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-default">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif" }} suppressHydrationWarning>
             {language === 'ar' ? 'المنتجات' : 'Products'}
@@ -641,11 +650,10 @@ export default function ProductsPage() {
                 <div className="space-y-2">
                   <button
                     onClick={() => setSelectedCategory('All')}
-                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                      selectedCategory === 'All' 
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${selectedCategory === 'All'
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                     style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }}
                     suppressHydrationWarning
                   >
@@ -655,11 +663,10 @@ export default function ProductsPage() {
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                        selectedCategory === category.id 
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${selectedCategory === category.id
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'text-gray-700 hover:bg-gray-50'
+                        }`}
                       style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }}
                       suppressHydrationWarning
                     >
@@ -672,7 +679,7 @@ export default function ProductsPage() {
               {/* Quick Filters */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-1 h-6 bg-[#9333EA] rounded-full"></div>
+                  <div className="w-1 h-6 bg-[#DAA520] rounded-full"></div>
                   <h3 className="text-base font-semibold text-gray-900" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif" }} suppressHydrationWarning>
                     <span suppressHydrationWarning>{language === 'ar' ? 'فلاتر سريعة' : 'Quick Filters'}</span>
                   </h3>
@@ -685,9 +692,9 @@ export default function ProductsPage() {
                       name="filterNew"
                       checked={showNewOnly}
                       onChange={(e) => setShowNewOnly(e.target.checked)}
-                      className="w-4 h-4 text-[#9333EA] border-gray-300 rounded focus:ring-[#9333EA]"
+                      className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#9333EA] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
+                    <span className="text-sm text-gray-700 group-hover:text-[#DAA520] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
                       {language === 'ar' ? '🆕 منتجات جديدة' : '🆕 New Arrivals'}
                     </span>
                   </label>
@@ -698,9 +705,9 @@ export default function ProductsPage() {
                       name="filterBestseller"
                       checked={showBestsellerOnly}
                       onChange={(e) => setShowBestsellerOnly(e.target.checked)}
-                      className="w-4 h-4 text-[#9333EA] border-gray-300 rounded focus:ring-[#9333EA]"
+                      className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#9333EA] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
+                    <span className="text-sm text-gray-700 group-hover:text-[#DAA520] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
                       {language === 'ar' ? '⭐ الأكثر مبيعاً' : '⭐ Bestsellers'}
                     </span>
                   </label>
@@ -711,9 +718,9 @@ export default function ProductsPage() {
                       name="filterFeatured"
                       checked={showFeaturedOnly}
                       onChange={(e) => setShowFeaturedOnly(e.target.checked)}
-                      className="w-4 h-4 text-[#9333EA] border-gray-300 rounded focus:ring-[#9333EA]"
+                      className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#9333EA] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
+                    <span className="text-sm text-gray-700 group-hover:text-[#DAA520] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
                       {language === 'ar' ? '✨ مميز' : '✨ Featured'}
                     </span>
                   </label>
@@ -724,9 +731,9 @@ export default function ProductsPage() {
                       name="filterSale"
                       checked={showOnSaleOnly}
                       onChange={(e) => setShowOnSaleOnly(e.target.checked)}
-                      className="w-4 h-4 text-[#9333EA] border-gray-300 rounded focus:ring-[#9333EA]"
+                      className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#9333EA] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
+                    <span className="text-sm text-gray-700 group-hover:text-[#DAA520] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
                       {language === 'ar' ? '🏷️ في الخصم' : '🏷️ On Sale'}
                     </span>
                   </label>
@@ -737,9 +744,9 @@ export default function ProductsPage() {
                       name="filterStock"
                       checked={inStockOnly}
                       onChange={(e) => setInStockOnly(e.target.checked)}
-                      className="w-4 h-4 text-[#9333EA] border-gray-300 rounded focus:ring-[#9333EA]"
+                      className="w-4 h-4 text-[#DAA520] border-gray-300 rounded focus:ring-[#DAA520]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#9333EA] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
+                    <span className="text-sm text-gray-700 group-hover:text-[#DAA520] transition-colors" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }} suppressHydrationWarning>
                       {language === 'ar' ? '✅ متوفر في المخزون' : '✅ In Stock Only'}
                     </span>
                   </label>
@@ -749,12 +756,12 @@ export default function ProductsPage() {
               {/* Price Range */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-1 h-6 bg-[#10B981] rounded-full"></div>
+                  <div className="w-1 h-6 bg-[#DAA520] rounded-full"></div>
                   <h3 className="text-base font-semibold text-gray-900" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif" }} suppressHydrationWarning>
-                  <span suppressHydrationWarning>{language === 'ar' ? 'نطاق السعر' : 'Price Range'}</span>
-                </h3>
+                    <span suppressHydrationWarning>{language === 'ar' ? 'نطاق السعر' : 'Price Range'}</span>
+                  </h3>
                 </div>
-                
+
                 {/* Price Labels */}
                 <div className="flex justify-between text-sm text-gray-600 mb-2" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '13px' }}>
                   <span suppressHydrationWarning>{language === 'ar' ? 'ج.م' : '$'}{priceRange.min}</span>
@@ -763,9 +770,9 @@ export default function ProductsPage() {
 
                 {/* Range Slider */}
                 <div className="mb-4">
-                  <div className="relative h-2 bg-gray-200 rounded-full">
-                    <div 
-                      className="absolute h-2 bg-[#10B981] rounded-full"
+                  <div className="relative h-1.5 bg-gray-100 rounded-full">
+                    <div
+                      className="absolute h-1.5 bg-[#DAA520] rounded-full"
                       style={{
                         left: `${(priceRange.min / maxPrice) * 100}%`,
                         width: `${((priceRange.max - priceRange.min) / maxPrice) * 100}%`
@@ -782,7 +789,7 @@ export default function ProductsPage() {
                         const newMin = Math.min(Number(e.target.value), priceRange.max - 1);
                         setPriceRange(prev => ({ ...prev, min: newMin }));
                       }}
-                      className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#10B981] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#10B981] [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                      className="absolute w-full h-1.5 bg-transparent appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#DAA520] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-[#DAA520] [&::-moz-range-thumb]:cursor-pointer"
                       style={{ zIndex: priceRange.min > priceRange.max - (maxPrice * 0.04) ? 5 : 3 }}
                     />
                     <input
@@ -819,7 +826,7 @@ export default function ProductsPage() {
                         const val = Math.min(Math.max(0, Number(e.target.value) || 0), maxPrice);
                         setPriceRange(prev => ({ ...prev, min: Math.min(val, prev.max - 1) }));
                       }}
-                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B981] focus:border-[#10B981] text-sm"
+                      className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm transition-all"
                       style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }}
                     />
                   </div>
@@ -838,7 +845,7 @@ export default function ProductsPage() {
                         const val = Math.min(Math.max(0, Number(e.target.value) || 0), maxPrice);
                         setPriceRange(prev => ({ ...prev, max: Math.max(val, prev.min + 1) }));
                       }}
-                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B981] focus:border-[#10B981] text-sm"
+                      className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#DAA520] focus:border-[#DAA520] text-sm transition-all"
                       style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }}
                     />
                   </div>
@@ -847,12 +854,12 @@ export default function ProductsPage() {
                 {/* Apply Filter Button */}
                 <button
                   onClick={() => setAppliedPriceRange({ ...priceRange })}
-                  className="w-full bg-[#10B981] text-white py-2.5 px-4 rounded-lg hover:bg-[#059669] transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg"
+                  className="w-full bg-[#DAA520] text-white py-2.5 px-4 rounded-lg hover:bg-[#B8860B] transition-all duration-300 text-sm font-semibold shadow-sm hover:shadow-md"
                   style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif", fontSize: '14px' }}
                   suppressHydrationWarning
                 >
-                    <span suppressHydrationWarning>{language === 'ar' ? 'تطبيق الفلتر' : 'Apply Filter'}</span>
-                  </button>
+                  <span suppressHydrationWarning>{language === 'ar' ? 'تطبيق الفلتر' : 'Apply Filter'}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -902,17 +909,15 @@ export default function ProductsPage() {
                   <div className="flex bg-gray-100 rounded-md p-1">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-md transition-colors ${
-                        viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
+                      className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
                     >
                       <Grid className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-md transition-colors ${
-                        viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
+                      className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
                     >
                       <List className="w-4 h-4" />
                     </button>
@@ -943,7 +948,7 @@ export default function ProductsPage() {
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm" style={{ fontFamily: "'Open Sans', 'Noto Sans Arabic', sans-serif" }}>
                   <span className="text-gray-600 font-medium" style={{ fontSize: '14px' }} suppressHydrationWarning>
-                    {language === 'ar' ? 'النتائج:' : 'Results:'} 
+                    {language === 'ar' ? 'النتائج:' : 'Results:'}
                   </span>
                   <span className="text-[#9333EA] font-semibold" style={{ fontSize: '14px' }}>
                     {sortedProducts.length} <span suppressHydrationWarning>{language === 'ar' ? 'منتج' : 'products'}</span>
@@ -984,8 +989,8 @@ export default function ProductsPage() {
                   {showNewOnly && (
                     <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       <span suppressHydrationWarning>🆕 {language === 'ar' ? 'جديد' : 'New'}</span>
-                      <button 
-                        onClick={() => setShowNewOnly(false)} 
+                      <button
+                        onClick={() => setShowNewOnly(false)}
                         className="ml-0.5 hover:bg-blue-600 rounded-full p-0.5 transition-colors flex items-center justify-center"
                         aria-label={language === 'ar' ? 'إزالة الفلتر' : 'Remove filter'}
                       >
@@ -998,8 +1003,8 @@ export default function ProductsPage() {
                   {showBestsellerOnly && (
                     <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200" style={{ fontSize: '12px' }}>
                       <span suppressHydrationWarning>⭐ {language === 'ar' ? 'الأكثر مبيعاً' : 'Bestseller'}</span>
-                      <button 
-                        onClick={() => setShowBestsellerOnly(false)} 
+                      <button
+                        onClick={() => setShowBestsellerOnly(false)}
                         className="ml-0.5 hover:bg-amber-600 rounded-full p-0.5 transition-colors flex items-center justify-center"
                         aria-label={language === 'ar' ? 'إزالة الفلتر' : 'Remove filter'}
                       >
@@ -1012,8 +1017,8 @@ export default function ProductsPage() {
                   {showFeaturedOnly && (
                     <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200" style={{ fontSize: '12px' }}>
                       <span suppressHydrationWarning>✨ {language === 'ar' ? 'مميز' : 'Featured'}</span>
-                      <button 
-                        onClick={() => setShowFeaturedOnly(false)} 
+                      <button
+                        onClick={() => setShowFeaturedOnly(false)}
                         className="ml-0.5 hover:bg-purple-600 rounded-full p-0.5 transition-colors flex items-center justify-center"
                         aria-label={language === 'ar' ? 'إزالة الفلتر' : 'Remove filter'}
                       >
@@ -1026,8 +1031,8 @@ export default function ProductsPage() {
                   {showOnSaleOnly && (
                     <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-500 to-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200" style={{ fontSize: '12px' }}>
                       <span suppressHydrationWarning>🏷️ {language === 'ar' ? 'خصم' : 'On Sale'}</span>
-                      <button 
-                        onClick={() => setShowOnSaleOnly(false)} 
+                      <button
+                        onClick={() => setShowOnSaleOnly(false)}
                         className="ml-0.5 hover:bg-red-600 rounded-full p-0.5 transition-colors flex items-center justify-center"
                         aria-label={language === 'ar' ? 'إزالة الفلتر' : 'Remove filter'}
                       >
@@ -1040,8 +1045,8 @@ export default function ProductsPage() {
                   {inStockOnly && (
                     <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200" style={{ fontSize: '12px' }}>
                       <span suppressHydrationWarning>✅ {language === 'ar' ? 'متوفر' : 'In Stock'}</span>
-                      <button 
-                        onClick={() => setInStockOnly(false)} 
+                      <button
+                        onClick={() => setInStockOnly(false)}
                         className="ml-0.5 hover:bg-green-600 rounded-full p-0.5 transition-colors flex items-center justify-center"
                         aria-label={language === 'ar' ? 'إزالة الفلتر' : 'Remove filter'}
                       >
@@ -1099,12 +1104,12 @@ export default function ProductsPage() {
                   {language === 'ar' ? 'لا توجد منتجات' : 'No Products Found'}
                 </h3>
                 <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto" suppressHydrationWarning>
-                  {language === 'ar' 
+                  {language === 'ar'
                     ? 'لا توجد منتجات تطابق معايير البحث الخاصة بك'
                     : 'No products match your search criteria'
                   }
                 </p>
-                  <button 
+                <button
                   onClick={() => {
                     setSelectedCategory('All');
                     setSearchTerm('');
@@ -1118,14 +1123,13 @@ export default function ProductsPage() {
                 </button>
               </div>
             ) : (
-              <div className={`grid gap-4 md:gap-6 ${
-                viewMode === 'grid' 
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3' 
-                  : 'grid-cols-1'
-              }`}>
+              <div className={`grid gap-4 md:gap-6 ${viewMode === 'grid'
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
+                : 'grid-cols-1'
+                }`}>
                 {paginatedProducts.map((product, index) => (
                   <div key={product.id} className="product-card-animate">
-                    <ProductCard 
+                    <ProductCard
                       product={product}
                       viewMode={viewMode}
                       onOpenVariantModal={handleOpenVariantModal}
@@ -1146,12 +1150,12 @@ export default function ProductsPage() {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  
+
                   {/* Smart pagination - show current page and nearby pages */}
                   {(() => {
                     const pages: (number | string)[] = [];
                     const maxVisible = 7;
-                    
+
                     if (totalPages <= maxVisible) {
                       // Show all pages if total is small
                       for (let i = 1; i <= totalPages; i++) {
@@ -1160,27 +1164,27 @@ export default function ProductsPage() {
                     } else {
                       // Show first page
                       pages.push(1);
-                      
+
                       if (currentPage > 3) {
                         pages.push('...');
                       }
-                      
+
                       // Show pages around current
                       const start = Math.max(2, currentPage - 1);
                       const end = Math.min(totalPages - 1, currentPage + 1);
-                      
+
                       for (let i = start; i <= end; i++) {
                         pages.push(i);
                       }
-                      
+
                       if (currentPage < totalPages - 2) {
                         pages.push('...');
                       }
-                      
+
                       // Show last page
                       pages.push(totalPages);
                     }
-                    
+
                     return pages.map((page, idx) => {
                       if (page === '...') {
                         return (
@@ -1189,23 +1193,22 @@ export default function ProductsPage() {
                           </span>
                         );
                       }
-                      
+
                       return (
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page as number)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            currentPage === page
-                              ? 'bg-[#9333EA] text-white shadow-md scale-105'
-                              : 'text-gray-500 hover:text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-[#9333EA]'
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentPage === page
+                            ? 'bg-[#9333EA] text-white shadow-md scale-105'
+                            : 'text-gray-500 hover:text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-[#9333EA]'
+                            }`}
                         >
                           {page}
                         </button>
                       );
                     });
                   })()}
-                  
+
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
@@ -1214,10 +1217,10 @@ export default function ProductsPage() {
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-                
+
                 {/* Page info */}
                 <div className="text-sm text-gray-600">
-                  {language === 'ar' 
+                  {language === 'ar'
                     ? `صفحة ${currentPage} من ${totalPages}`
                     : `Page ${currentPage} of ${totalPages}`
                   }
@@ -1282,15 +1285,15 @@ export default function ProductsPage() {
                         // Check if size has stock in general (without color)
                         const hasStockGeneral = hasStockForCombination(size.value, undefined);
                         // Check if size has stock for selected color (if color is selected)
-                        const hasStockForColor = selectedColor 
+                        const hasStockForColor = selectedColor
                           ? hasStockForCombination(size.value, selectedColor)
                           : true;
-                        
+
                         // Size is available if it has stock in general
                         // But if color is selected and size doesn't have stock for that color,
                         // we'll reset the color when size is selected
                         const isAvailable = hasStockGeneral;
-                        
+
                         return (
                           <button
                             key={size.value}
@@ -1305,14 +1308,13 @@ export default function ProductsPage() {
                               }
                             }}
                             disabled={!isAvailable}
-                            className={`px-6 py-3 border-2 rounded-lg text-sm font-medium transition-all relative ${
-                              !isAvailable
-                                ? 'opacity-30 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400'
-                                : selectedSize === size.value
+                            className={`px-6 py-3 border-2 rounded-lg text-sm font-medium transition-all relative ${!isAvailable
+                              ? 'opacity-30 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400'
+                              : selectedSize === size.value
                                 ? 'border-[#DAA520] bg-[#DAA520]/10 text-[#DAA520]'
                                 : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                            }`}
-                            title={selectedColor && !hasStockForColor && isAvailable 
+                              }`}
+                            title={selectedColor && !hasStockForColor && isAvailable
                               ? (language === 'ar' ? `المقاس متوفر ولكن غير متوفر للون ${selectedColor}` : `Size available but not for color ${selectedColor}`)
                               : undefined}
                           >
@@ -1338,7 +1340,7 @@ export default function ProductsPage() {
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR').map((color: any) => {
-                        const hasStock = selectedSize 
+                        const hasStock = selectedSize
                           ? hasStockForCombination(selectedSize, color.value)
                           : hasStockForCombination(undefined, color.value);
                         return (
@@ -1351,15 +1353,13 @@ export default function ProductsPage() {
                                 }
                               }}
                               disabled={!hasStock}
-                              className={`relative w-14 h-14 rounded-full border-2 transition-all shadow-md hover:shadow-lg transform ${
-                                !hasStock
-                                  ? 'opacity-30 cursor-not-allowed'
-                                  : 'hover:scale-110'
-                              } ${
-                                selectedColor === color.value && hasStock
+                              className={`relative w-14 h-14 rounded-full border-2 transition-all shadow-md hover:shadow-lg transform ${!hasStock
+                                ? 'opacity-30 cursor-not-allowed'
+                                : 'hover:scale-110'
+                                } ${selectedColor === color.value && hasStock
                                   ? 'border-[#DAA520] ring-4 ring-[#DAA520]/30 scale-110'
                                   : 'border-gray-300 hover:border-gray-400'
-                              }`}
+                                }`}
                               style={{
                                 backgroundColor: getColorHex(color.value)
                               }}
@@ -1376,9 +1376,8 @@ export default function ProductsPage() {
                                 </div>
                               )}
                             </button>
-                            <span className={`text-xs mt-1.5 font-medium ${
-                              selectedColor === color.value && hasStock ? 'text-[#DAA520]' : !hasStock ? 'text-gray-400' : 'text-gray-600'
-                            }`}>
+                            <span className={`text-xs mt-1.5 font-medium ${selectedColor === color.value && hasStock ? 'text-[#DAA520]' : !hasStock ? 'text-gray-400' : 'text-gray-600'
+                              }`}>
                               {language === 'ar' ? color.valueAr : color.value}
                             </span>
                           </div>
@@ -1442,18 +1441,17 @@ export default function ProductsPage() {
                   const hasNoStock = getAvailableStock() === 0;
                   return needsSize || needsColor || hasNoStock;
                 })()}
-                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 mt-6 ${
-                  (() => {
-                    const sizes = selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE');
-                    const colors = selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR');
-                    const needsSize = sizes.length > 0 && !selectedSize;
-                    const needsColor = colors.length > 0 && !selectedColor;
-                    const hasNoStock = getAvailableStock() === 0;
-                    return hasNoStock || needsSize || needsColor
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-[#DAA520] text-white hover:bg-[#B8860B] shadow-lg hover:shadow-xl transform hover:scale-105'
-                  })()
-                }`}
+                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 mt-6 ${(() => {
+                  const sizes = selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE');
+                  const colors = selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR');
+                  const needsSize = sizes.length > 0 && !selectedSize;
+                  const needsColor = colors.length > 0 && !selectedColor;
+                  const hasNoStock = getAvailableStock() === 0;
+                  return hasNoStock || needsSize || needsColor
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#DAA520] text-white hover:bg-[#B8860B] shadow-lg hover:shadow-xl transform hover:scale-105'
+                })()
+                  }`}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {language === 'ar' ? 'إضافة للسلة' : 'Add to Cart'}

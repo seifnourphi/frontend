@@ -123,17 +123,16 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < rating
-            ? 'text-[#DAA520] fill-current'
-            : 'text-gray-300'
-        }`}
+        className={`w-5 h-5 ${i < rating
+          ? 'text-[#DAA520] fill-current'
+          : 'text-gray-300'
+          }`}
       />
     ));
   };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-[#1a1a1a] via-[#2c2c2c] to-[#1a1a1a] relative overflow-hidden">
+    <section className="py-24 bg-primary relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#DAA520]/5 rounded-full blur-3xl animate-pulse"></div>
@@ -150,13 +149,13 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
             </span>
             <div className="w-12 h-1 bg-gradient-to-r from-[#B8860B] to-[#DAA520] rounded-full"></div>
           </div>
-          
+
           <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#DAA520] via-[#B8860B] to-[#DAA520] bg-clip-text text-transparent mb-6">
             {language === 'ar' ? 'ماذا يقولون' : 'What They Say'}
           </h2>
-          
-          <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            {language === 'ar' 
+
+          <p className="text-xl text-foreground/80 max-w-3xl mx-auto leading-relaxed">
+            {language === 'ar'
               ? 'اكتشف آراء عملائنا الكرام حول تجربتهم مع منتجات رِداء'
               : 'Discover what our valued customers say about their experience with RIDAA products'
             }
@@ -184,7 +183,7 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
 
           {/* Testimonials Container */}
           <div className="overflow-hidden">
-            <div 
+            <div
               ref={scrollContainerRef}
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -192,7 +191,7 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
               {displayTestimonials.map((testimonial, index) => (
                 <div key={testimonial.id} className="w-full flex-shrink-0 px-4">
                   <div className="max-w-4xl mx-auto">
-                    <div className="bg-gradient-to-br from-[#2c2c2c] to-[#1a1a1a] rounded-3xl p-8 md:p-12 shadow-2xl border border-[#DAA520]/20 relative overflow-hidden">
+                    <div className="bg-card rounded-3xl p-8 md:p-12 shadow-2xl border border-default relative overflow-hidden">
                       {/* Background Quote Icon */}
                       <div className="absolute top-8 right-8 text-[#DAA520]/10">
                         <Quote className="w-24 h-24" />
@@ -219,7 +218,7 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
                           </div>
 
                           {/* Quote */}
-                          <blockquote className="text-lg md:text-xl text-white/90 leading-relaxed max-w-3xl mx-auto italic">
+                          <blockquote className="text-lg md:text-xl text-foreground/90 leading-relaxed max-w-3xl mx-auto italic">
                             "{language === 'ar' ? testimonial.contentAr : testimonial.content}"
                           </blockquote>
                         </div>
@@ -229,7 +228,7 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
                           <h4 className="text-xl font-bold text-[#DAA520] mb-2">
                             {language === 'ar' ? testimonial.nameAr : testimonial.name}
                           </h4>
-                          <p className="text-white/70 font-medium">
+                          <p className="text-foreground/70 font-medium">
                             {language === 'ar' ? testimonial.titleAr : testimonial.title}
                           </p>
                         </div>
@@ -247,11 +246,10 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
               <button
                 key={index}
                 onClick={() => goToTestimonial(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? 'bg-[#DAA520] scale-125'
-                    : 'bg-white/30 hover:bg-white/50'
-                }`}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex
+                  ? 'bg-[#DAA520] scale-125'
+                  : 'bg-white/30 hover:bg-white/50'
+                  }`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}
@@ -262,15 +260,14 @@ export function Testimonials({ testimonials = [] }: TestimonialsProps) {
         <div className="text-center mt-8">
           <button
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${
-              isAutoPlaying
-                ? 'bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white shadow-xl hover:shadow-[#DAA520]/25'
-                : 'bg-[#3e5258]/20 text-[#3e5258] border border-[#3e5258]/40 hover:bg-[#3e5258]/30'
-            }`}
+            className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-300 ${isAutoPlaying
+              ? 'bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white shadow-xl hover:shadow-[#DAA520]/25'
+              : 'bg-[#3e5258]/20 text-[#3e5258] border border-[#3e5258]/40 hover:bg-[#3e5258]/30'
+              }`}
           >
             <div className={`w-3 h-3 rounded-full ${isAutoPlaying ? 'bg-white' : 'bg-[#3e5258]'}`}></div>
             <span>
-              {isAutoPlaying 
+              {isAutoPlaying
                 ? (language === 'ar' ? 'إيقاف التشغيل التلقائي' : 'Stop Auto-play')
                 : (language === 'ar' ? 'تشغيل تلقائي' : 'Auto-play')
               }

@@ -1,324 +1,234 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { ShoppingCart, Heart, Eye, Star } from 'lucide-react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useCart } from '@/components/providers/CartProvider';
 import { useWishlist } from '@/components/providers/WishlistProvider';
 import { useToast } from '@/components/providers/ToastProvider';
-import { Eye, Heart, ShoppingCart, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { getFirstImageSrc } from '@/lib/image-utils';
 
 interface Product {
-  id: string;
+  id: string | number;
   name: string;
-  nameAr: string;
-  description?: string;
-  descriptionAr?: string;
+  nameAr?: string;
   slug: string;
-  sku: string;
   price: number;
   salePrice?: number | null;
   discountPercent?: number | null;
-  images: Array<{
-    url: string;
-    alt?: string;
-    altAr?: string;
-  }>;
-  category: {
-    id: string;
-    name: string;
-    nameAr: string;
-    slug: string;
-  };
-  variants: {
-    type: 'SIZE' | 'COLOR';
-    value: string;
-    valueAr?: string;
-    stock?: number;
-  }[];
-  variantCombinations?: Array<{
-    id: string;
-    size?: string | null;
-    color?: string | null;
-    stock: number;
-    sortOrder: number;
-  }>;
+  originalPrice?: number;
+  description: string;
+  images: any[];
+  isFeatured: boolean;
+  isNew: boolean;
+  isBestseller: boolean;
   stockQuantity: number;
-  createdAt?: string;
-  views?: number;
-  isNew?: boolean;
-  isBestseller?: boolean;
-  isFeatured?: boolean;
+  category: {
+    id: string | number;
+    name: string;
+    nameAr?: string;
+  };
+  rating?: number;
+  reviewCount?: number;
+  variants?: any[];
 }
 
 interface ProductCardProps {
   product: Product;
-  viewMode?: 'grid' | 'list';
-  onOpenVariantModal?: (product: Product) => void;
 }
 
-export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: ProductCardProps) {
-  const { language, t } = useLanguage();
-  const { addToCart, isInCart } = useCart();
+export function ProductCard({ product }: ProductCardProps) {
+  const { language } = useLanguage();
+  const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
-  const [isImageLoading, setIsImageLoading] = useState(true);
+  const router = useRouter();
 
-  const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
-  const hasDiscount = product.salePrice && product.salePrice > 0 && product.salePrice < product.price;
-  const discountPercent = hasDiscount 
-    ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
-    : 0;
+  // Mobile Safe Touch Logic
+  const [isMobileActive, setIsMobileActive] = useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Check if product has variants
-    const sizes = product.variants.filter(v => v.type === 'SIZE');
-    const colors = product.variants.filter(v => v.type === 'COLOR');
-    
-    // If product has variants, show modal to select them or navigate to product page
-    if (sizes.length > 0 || colors.length > 0) {
-      if (onOpenVariantModal) {
-        onOpenVariantModal(product);
-      } else {
-        // If no callback, navigate to product page
-        window.location.href = `/products/${product.slug}`;
-      }
+  const handleCardTouch = (e: React.MouseEvent) => {
+    // Check if it's likely a touch event (mobile)
+    const isTouch = window.matchMedia('(max-width: 768px)').matches;
+
+    if (isTouch && !isMobileActive) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsMobileActive(true);
       return;
     }
-    
-    // No variants, add directly to cart
-    if (product.stockQuantity > 0) {
-      // Get image URL - handle both string and object formats
-      const firstImage = product.images && product.images.length > 0 ? product.images[0] : null;
-      const imageUrl = typeof firstImage === 'string' 
-        ? firstImage 
-        : (firstImage && typeof firstImage === 'object' && 'url' in firstImage)
-          ? firstImage.url || ''
-          : '';
-      
-      const result = addToCart({
-        name: language === 'ar' ? product.nameAr : product.name,
-        nameAr: product.nameAr,
-        productId: product.id,
-        price: displayPrice,
-        image: imageUrl,
-        quantity: 1,
-      });
-      
-      if (result.success) {
-        showToast(
-          language === 'ar' ? 'تم إضافة المنتج للسلة!' : 'Product added to cart!',
-          'success',
-          3000
-        );
-      } else if (result.message) {
-        showToast(
-          result.message,
-          'error',
-          3000
-        );
-      }
-    } else {
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    const isTouch = window.matchMedia('(max-width: 768px)').matches;
+    if (isTouch && !isMobileActive) {
+      handleCardTouch(e);
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    const idStr = product.id.toString();
+
+    if (isInWishlist(idStr)) {
+      removeFromWishlist(idStr);
       showToast(
-        language === 'ar' ? 'المنتج غير متوفر في المخزون' : 'Product is out of stock',
-        'error',
-        3000
+        language === 'ar' ? 'تمت الإزالة من المفضلة' : 'Removed from wishlist',
+        'info'
+      );
+    } else {
+      const imageUrl = getFirstImageSrc(product.images, '');
+      addToWishlist({
+        productId: idStr,
+        name: product.name,
+        nameAr: product.nameAr || product.name,
+        price: product.price,
+        image: imageUrl,
+        slug: product.slug
+      });
+      showToast(
+        language === 'ar' ? 'تمت الإضافة للمفضلة' : 'Added to wishlist',
+        'success'
       );
     }
   };
 
+  const handleAddToCart = (e: React.MouseEvent) => {
+    const isTouch = window.matchMedia('(max-width: 768px)').matches;
+    if (isTouch && !isMobileActive) {
+      handleCardTouch(e);
+      return;
+    }
 
-  const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist({
-        productId: product.id,
-        name: product.name,
-        nameAr: product.nameAr,
+
+    // If product has variants, navigate to product page to select them
+    if (product.variants && product.variants.length > 0) {
+      router.push(`/products/${product.slug}`);
+      return;
+    }
+
+    if (product.stockQuantity > 0) {
+      const imageUrl = getFirstImageSrc(product.images, '');
+      const displayPrice = (product.salePrice && product.salePrice > 0) ? product.salePrice : product.price;
+
+      const result = addToCart({
+        name: language === 'ar' ? product.nameAr || product.name : product.name,
+        nameAr: product.nameAr || product.name,
+        productId: product.id.toString(),
         price: displayPrice,
-        image: product.images[0]?.url || '',
-        slug: product.slug,
+        image: imageUrl,
+        quantity: 1,
+        stockQuantity: product.stockQuantity,
       });
+
+      if (result.success) {
+        showToast(
+          language === 'ar' ? 'تم إضافة المنتج للسلة!' : 'Added to cart!',
+          'success'
+        );
+      } else if (result.message) {
+        showToast(result.message, 'error');
+      }
+    } else {
+      showToast(
+        language === 'ar' ? 'المنتج غير متوفر' : 'Product out of stock',
+        'error'
+      );
     }
   };
 
-  const router = useRouter();
-
-  const handleViewProduct = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleViewProduct = (e: React.MouseEvent) => {
+    const isTouch = window.matchMedia('(max-width: 768px)').matches;
+    if (isTouch && !isMobileActive) {
+      handleCardTouch(e);
+      return;
     }
-    
-    // Track product view (fire and forget)
-    fetch('/api/analytics', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        event: 'view_product',
-        productId: product.id,
-        entityType: 'product',
-      }),
-    }).catch(() => {
-      // Silently handle error
-    });
 
-    // Navigate to product page
+    e.preventDefault();
+    e.stopPropagation();
     router.push(`/products/${product.slug}`);
   };
 
+  // Determine original price and display price
+  const originalPriceValue = product.originalPrice || (product.salePrice && product.salePrice > 0 ? product.price : undefined);
+  const displayPrice = (product.salePrice && product.salePrice > 0) ? product.salePrice : product.price;
+  const hasDiscount = (product.salePrice && product.salePrice > 0) || (product.originalPrice && product.originalPrice > product.price);
+
+  const getDefaultImage = (name: string) => {
+    return 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop';
+  };
+
+  const imageUrl = getFirstImageSrc(product.images, getDefaultImage(product.name));
+
   return (
-    <div 
-      className="group relative bg-white border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col h-[400px] cursor-pointer"
-      onClick={(e) => {
-        // Only navigate if clicking on the card itself, not on buttons or links
-        const target = e.target as HTMLElement;
-        if (target.closest('button') || target.closest('a')) {
-          return;
-        }
-        handleViewProduct(e);
-      }}
+    <div
+      className={`group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100 ${isMobileActive ? 'ring-2 ring-[#DAA520]' : ''
+        }`}
+      onClick={handleViewProduct}
+      onMouseLeave={() => setIsMobileActive(false)}
     >
-      {/* Product Image */}
-      <div className="h-[250px] bg-gray-100 relative overflow-hidden">
-        <div className="relative w-full h-full">
-          {product.images && product.images.length > 0 ? (() => {
-            // Get first image - handle both string and object formats
-            const firstImage = product.images[0];
-            let imageUrl: string;
-            
-            if (typeof firstImage === 'string') {
-              imageUrl = (firstImage as string).trim() || '/uploads/good.png';
-            } else if (firstImage && typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
-              const urlValue = (firstImage as { url?: string }).url;
-              imageUrl = (urlValue ? String(urlValue).trim() : '') || '/uploads/good.png';
-            } else {
-              imageUrl = '/uploads/good.png';
-            }
-            
-            // Decode HTML entities (like &#x2F; to /) if present
-            if (imageUrl && imageUrl.includes('&#')) {
-              const tempDiv = document.createElement('div');
-              tempDiv.innerHTML = imageUrl;
-              imageUrl = tempDiv.textContent || tempDiv.innerText || imageUrl;
-            }
-            
-            // Validate URL - if empty or invalid, use fallback
-            if (!imageUrl || imageUrl === '' || imageUrl === 'null' || imageUrl === 'undefined') {
-              imageUrl = '/uploads/good.png';
-            }
-            
-            const imageAlt = typeof firstImage === 'object' && firstImage?.alt 
-              ? (language === 'ar' ? (firstImage.altAr || firstImage.alt) : firstImage.alt)
-              : (language === 'ar' ? product.nameAr : product.name);
-            
-            return (
-              <>
-                {isImageLoading && (
-                  <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-400/20 border-t-yellow-400"></div>
-                  </div>
-                )}
-                <img
-                  key={`product-${product.id}-img-0`}
-                  src={imageUrl}
-                  alt={imageAlt}
-                  className={`w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105 cursor-pointer ${
-                    isImageLoading ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  onClick={handleViewProduct}
-                  onLoad={() => {
-                    setIsImageLoading(false);
-                  }}
-                  onError={(e) => {
-                    setIsImageLoading(false);
-                    // Fallback to placeholder on error
-                    const target = e.target as HTMLImageElement;
-                    if (target.src !== '/uploads/good.png' && !target.src.includes('good.png')) {
-                      target.src = '/uploads/good.png';
-                    }
-                  }}
-                />
-              </>
-            );
-          })() : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center cursor-pointer" onClick={handleViewProduct}>
-              <div className="text-6xl opacity-40">👘</div>
-            </div>
-          )}
-        </div>
+      {/* Image Container */}
+      <div className="relative aspect-square overflow-hidden bg-gray-50">
+        <img
+          src={imageUrl}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
-        {/* Badges Container */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-          {/* Discount Badge */}
-          {hasDiscount && discountPercent > 0 && (
-            <div className="bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-md transform hover:scale-110 transition-transform flex items-center justify-center">
-              <span className="relative z-10">-{discountPercent}%</span>
-            </div>
-          )}
-
-          {/* New Badge */}
+        {/* Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
           {product.isNew && (
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-md flex items-center justify-center">
-              <span>{language === 'ar' ? 'جديد' : 'New'}</span>
-            </div>
+            <span className="bg-green-500 text-white px-2.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap text-center inline-flex items-center justify-center">
+              {language === 'ar' ? 'جديد' : 'New'}
+            </span>
           )}
-
-          {/* Bestseller Badge */}
           {product.isBestseller && (
-            <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-md flex items-center justify-center">
-              <span>{language === 'ar' ? 'الأكثر مبيعاً' : 'Bestseller'}</span>
-            </div>
+            <span className="bg-purple-600 text-white px-2.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap text-center inline-flex items-center justify-center">
+              {language === 'ar' ? 'الأكثر مبيعاً' : 'Bestseller'}
+            </span>
           )}
-
-          {/* Featured Badge */}
-          {product.isFeatured && (
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-md flex items-center justify-center">
-              <span>{language === 'ar' ? 'مميز' : 'Featured'}</span>
-            </div>
+          {hasDiscount && (
+            <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-semibold whitespace-nowrap text-center inline-flex items-center justify-center shadow-lg">
+              {product.discountPercent
+                ? `-${product.discountPercent}%`
+                : (originalPriceValue ? `-${Math.round(((originalPriceValue - displayPrice) / originalPriceValue) * 100)}%` : '')
+              }
+            </span>
           )}
         </div>
-
-        {/* Stock Badge */}
-        {product.stockQuantity === 0 && (
-          <div className="absolute top-2 right-2 bg-gradient-to-br from-gray-700 to-gray-900 text-white px-1.5 py-0.5 rounded-full text-[9px] font-semibold z-10 shadow-md flex items-center justify-center">
-            {t('products.outOfStock')}
-          </div>
-        )}
 
         {/* Action Icons - Right side of Image */}
-        <div className="absolute top-2 right-2 flex flex-col items-center justify-center gap-2 scale-0 group-hover:scale-100 transition-transform duration-300 z-20 origin-top-right">
-          <button 
+        <div className={`absolute top-2 right-2 flex flex-col items-center justify-center gap-2 transition-all duration-300 z-20 origin-top-right ${isMobileActive ? 'scale-100 opacity-100' : 'scale-0 group-hover:scale-100'
+          }`}>
+          <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               handleViewProduct(e);
             }}
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-[#DAA520] hover:text-white transition-all duration-300 shadow-md"
+            className="w-7 h-7 md:w-8 md:h-8 bg-white rounded-full flex items-center justify-center hover:bg-[#DAA520] hover:text-white transition-all duration-300 shadow-md"
             title={language === 'ar' ? 'عرض المنتج' : 'View Product'}
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </button>
-          <button 
+          <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               handleWishlistClick(e);
             }}
-            disabled={product.stockQuantity === 0}
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-[#DAA520] hover:text-white transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-7 h-7 md:w-8 md:h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-all duration-300 shadow-md"
             title={language === 'ar' ? 'إضافة للمفضلة' : 'Add to Wishlist'}
           >
-            <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-current text-red-500' : 'text-gray-900'}`} />
+            <Heart
+              className={`w-3.5 h-3.5 md:w-4 md:h-4 transition-colors ${isInWishlist(product.id.toString())
+                ? 'fill-red-500 text-red-500'
+                : 'text-gray-900'
+                }`}
+            />
           </button>
         </div>
       </div>
@@ -326,7 +236,7 @@ export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: 
       {/* Product Info */}
       <div className="p-4 flex flex-col flex-1">
         {/* Title */}
-        <h3 
+        <h3
           className="text-base font-medium text-gray-900 mb-2 line-clamp-2 hover:text-[#DAA520] transition-colors cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
@@ -342,9 +252,8 @@ export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: 
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`w-3.5 h-3.5 ${
-                  star <= 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                }`}
+                className={`w-3.5 h-3.5 ${star <= 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                  }`}
               />
             ))}
           </div>
@@ -354,14 +263,14 @@ export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: 
         {/* Price */}
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base font-semibold text-[#DAA520]">
-            {language === 'ar' 
+            {language === 'ar'
               ? `ج.م ${displayPrice.toLocaleString('en-US')}`
               : `EGP ${displayPrice.toLocaleString('en-US')}`
             }
           </span>
           {hasDiscount && (
             <span className="text-sm text-gray-500 line-through">
-              {language === 'ar' 
+              {language === 'ar'
                 ? `ج.م ${product.price.toLocaleString('en-US')}`
                 : `EGP ${product.price.toLocaleString('en-US')}`
               }
@@ -370,19 +279,18 @@ export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: 
         </div>
 
         {/* Add to Cart Button */}
-        <button 
+        <button
           onClick={(e) => {
             handleAddToCart(e);
           }}
           type="button"
           disabled={product.stockQuantity === 0}
-          className={`w-full py-2 flex items-center justify-center gap-1.5 transition-all text-sm font-medium ${
-            product.stockQuantity === 0
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-[#DAA520] text-white hover:bg-[#B8860B]'
-          }`}
+          className={`w-full py-1.5 md:py-2 flex items-center justify-center gap-1.5 transition-all text-xs md:text-sm font-medium ${product.stockQuantity === 0
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            : 'bg-[#DAA520] text-white hover:bg-[#B8860B]'
+            }`}
         >
-          <ShoppingCart className="w-4 h-4" />
+          <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4" />
           <span>
             {product.stockQuantity === 0
               ? (language === 'ar' ? 'نفد المخزون' : 'Out of Stock')
@@ -391,7 +299,6 @@ export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: 
           </span>
         </button>
       </div>
-
     </div>
   );
 }
