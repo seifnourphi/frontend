@@ -562,7 +562,7 @@ export default function ProductsPage() {
       : selectedProductForModal.price;
 
     const firstImage = selectedProductForModal.images[0];
-    const imageUrl = getImageSrc(firstImage as any, '/placeholder.svg');
+    const imageUrl = getImageSrc(firstImage as any, 'https://placehold.co/600x400/eeeeee/999999?text=No+Image');
 
     addToCart({
       name: language === 'ar' ? (selectedProductForModal.nameAr || selectedProductForModal.name) : selectedProductForModal.name,
@@ -1252,7 +1252,7 @@ export default function ProductsPage() {
               {/* Product Image */}
               {selectedProductForModal.images.length > 0 && (() => {
                 const firstImage = selectedProductForModal.images[0];
-                const imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage?.url || '/placeholder.svg');
+                const imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage?.url || 'https://placehold.co/600x400/eeeeee/999999?text=No+Image');
                 return (
                   <div className="mb-6">
                     <img
@@ -1260,7 +1260,7 @@ export default function ProductsPage() {
                       alt={language === 'ar' ? selectedProductForModal.nameAr : selectedProductForModal.name}
                       className="w-full h-48 object-cover rounded-lg"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        (e.target as HTMLImageElement).src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
                       }}
                     />
                   </div>

@@ -122,7 +122,7 @@ export function ClassicHero({ products }: ClassicHeroProps) {
         name: product.name,
         nameAr: product.name,
         price: product.price,
-        image: getFirstImageSrc(product.images as any, '/placeholder.svg'),
+        image: getFirstImageSrc(product.images as any, 'https://placehold.co/600x400/eeeeee/999999?text=No+Image'),
         quantity: 1,
         stockQuantity: product.stockQuantity,
       });

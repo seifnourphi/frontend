@@ -670,7 +670,7 @@ export default function WishlistPage() {
                     alt={language === 'ar' ? selectedProductForModal.nameAr : selectedProductForModal.name}
                     className="w-full h-48 object-cover rounded-lg"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
                     }}
                   />
                 </div>

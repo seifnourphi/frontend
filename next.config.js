@@ -70,7 +70,7 @@ const nextConfig = {
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
-    domains: [],
+    domains: ['placehold.co'],
   },
 
   // Output configuration for better security

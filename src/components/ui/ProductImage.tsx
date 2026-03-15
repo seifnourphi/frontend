@@ -28,7 +28,7 @@ export function ProductImage({
     image,
     alt = '',
     className = '',
-    fallback = '/placeholder.svg',
+    fallback = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image',
     onLoad,
     onError,
     onClick

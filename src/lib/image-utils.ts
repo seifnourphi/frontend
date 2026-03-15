@@ -20,7 +20,7 @@ export interface ImageData {
  */
 export const getImageSrc = (
     image: ImageData | string | null | undefined,
-    fallback: string = '/placeholder.svg'
+    fallback: string = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image'
 ): string => {
     // Handle null/undefined
     if (!image) return fallback;
@@ -61,7 +61,7 @@ export const getImageSrc = (
  */
 export const getFirstImageSrc = (
     images: (ImageData | string)[] | null | undefined,
-    fallback: string = '/placeholder.svg'
+    fallback: string = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image'
 ): string => {
     if (!images || images.length === 0) return fallback;
     return getImageSrc(images[0], fallback);
@@ -77,7 +77,7 @@ export const getFirstImageSrc = (
 export const getImageAtIndex = (
     images: (ImageData | string)[] | null | undefined,
     index: number,
-    fallback: string = '/placeholder.svg'
+    fallback: string = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image'
 ): string => {
     if (!images || images.length <= index) return fallback;
     return getImageSrc(images[index], fallback);
@@ -151,5 +151,5 @@ export const isUrlImage = (image: ImageData | string | null | undefined): boolea
  */
 export const getDefaultImage = (productName?: string): string => {
     // You can customize this to return different defaults based on product name
-    return '/placeholder.svg';
+    return 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
 };

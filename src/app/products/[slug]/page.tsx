@@ -1009,7 +1009,7 @@ export default function ProductDetailsPage() {
                 <img
                   src={typeof product.images[selectedImageIndex] === 'string'
                     ? product.images[selectedImageIndex]
-                    : (product.images[selectedImageIndex]?.url || '/placeholder.svg')}
+                    : (product.images[selectedImageIndex]?.url || 'https://placehold.co/600x400/eeeeee/999999?text=No+Image')}
                   alt={language === 'ar'
                     ? (typeof product.images[selectedImageIndex] === 'object'
                       ? (product.images[selectedImageIndex]?.altAr || product.images[selectedImageIndex]?.alt || product.nameAr)
@@ -1026,8 +1026,8 @@ export default function ProductDetailsPage() {
                     // Fallback to placeholder on error
                     const target = e.target as HTMLImageElement;
                     // Image failed to load - no sensitive data logged
-                    if (!target.src.includes('/placeholder.svg') && !target.src.includes('good.png')) {
-                      target.src = '/placeholder.svg';
+                    if (!target.src.includes('https://placehold.co/600x400/eeeeee/999999?text=No+Image') && !target.src.includes('good.png')) {
+                      target.src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
                     }
                   }}
                 />
@@ -1059,14 +1059,14 @@ export default function ProductDetailsPage() {
                         }`}
                     >
                       <img
-                        src={imageUrl || '/placeholder.svg'}
+                        src={imageUrl || 'https://placehold.co/600x400/eeeeee/999999?text=No+Image'}
                         alt={imageAlt}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         onError={(e) => {
                           // Fallback to placeholder on error
                           const target = e.target as HTMLImageElement;
-                          if (!target.src.includes('/placeholder.svg')) {
-                            target.src = '/placeholder.svg';
+                          if (!target.src.includes('https://placehold.co/600x400/eeeeee/999999?text=No+Image')) {
+                            target.src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
                           }
                         }}
                       />
@@ -1518,7 +1518,7 @@ export default function ProductDetailsPage() {
               <img
                 src={typeof product.images[selectedImageIndex] === 'string'
                   ? product.images[selectedImageIndex]
-                  : (product.images[selectedImageIndex]?.url || '/placeholder.svg')}
+                  : (product.images[selectedImageIndex]?.url || 'https://placehold.co/600x400/eeeeee/999999?text=No+Image')}
                 alt={language === 'ar'
                   ? (typeof product.images[selectedImageIndex] === 'object'
                     ? (product.images[selectedImageIndex]?.altAr || product.images[selectedImageIndex]?.alt || product.nameAr)
@@ -1530,8 +1530,8 @@ export default function ProductDetailsPage() {
                 onError={(e) => {
                   // Fallback to placeholder on error
                   const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('/placeholder.svg')) {
-                    target.src = '/placeholder.svg';
+                  if (!target.src.includes('https://placehold.co/600x400/eeeeee/999999?text=No+Image')) {
+                    target.src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
                   }
                 }}
               />

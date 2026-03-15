@@ -455,8 +455,8 @@ export default function HomePage() {
           ...p,
           id: p.id.toString(),
           image: Array.isArray(p.images) && p.images.length > 0
-            ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0].url || '/placeholder.svg')
-            : '/placeholder.svg',
+            ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0].url || 'https://placehold.co/600x400/eeeeee/999999?text=No+Image')
+            : 'https://placehold.co/600x400/eeeeee/999999?text=No+Image',
           category: p.category?.name || 'Category'
         }))}
         onLoadingChange={setIsHeroLoading}
