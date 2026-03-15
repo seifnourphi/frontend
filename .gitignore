@@ -91,15 +91,12 @@ ssl/
 # ===========================
 # Docker
 # ===========================
-.dockerignore
-docker-compose.yml
 docker-compose.override.yml
 
 # ===========================
 # Deployment / Cloud
 # ===========================
 .vercel
-.github/
 
 # ===========================
 # Uploads / Media
