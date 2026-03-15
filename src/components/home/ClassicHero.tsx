@@ -122,7 +122,7 @@ export function ClassicHero({ products }: ClassicHeroProps) {
         name: product.name,
         nameAr: product.name,
         price: product.price,
-        image: getFirstImageSrc(product.images as any, '/uploads/good.png'),
+        image: getFirstImageSrc(product.images as any, '/placeholder.svg'),
         quantity: 1,
         stockQuantity: product.stockQuantity,
       });

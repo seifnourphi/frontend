@@ -455,8 +455,8 @@ export default function HomePage() {
           ...p,
           id: p.id.toString(),
           image: Array.isArray(p.images) && p.images.length > 0
-            ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0].url || '/uploads/good.png')
-            : '/uploads/good.png',
+            ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0].url || '/placeholder.svg')
+            : '/placeholder.svg',
           category: p.category?.name || 'Category'
         }))}
         onLoadingChange={setIsHeroLoading}

@@ -741,7 +741,7 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                                   : currentAdvertisement.image.startsWith('/')
                                     ? currentAdvertisement.image
                                     : `/uploads/${currentAdvertisement.image.replace(/^uploads\//, '')}`)
-                                : '/uploads/good.png'
+                                : '/placeholder.svg'
                             }
                             alt={language === 'ar' ? currentAdvertisement.titleAr : currentAdvertisement.title}
                             className={`w-full h-auto max-w-full object-contain relative z-10 rounded-lg ${currentAdvertisement.images && currentAdvertisement.images.length >= 4
@@ -753,8 +753,8 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                             decoding="async"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              if (target.src !== '/uploads/good.png') {
-                                target.src = '/uploads/good.png';
+                              if (!target.src.includes('/placeholder.svg')) {
+                                target.src = '/placeholder.svg';
                               }
                             }}
                           />
@@ -794,15 +794,15 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                               >
                                 <div className="flex-1 flex items-center justify-center min-h-[60px] max-h-[80px] sm:min-h-[70px] sm:max-h-[90px] md:min-h-[90px] md:max-h-[110px] lg:min-h-[110px] lg:max-h-[130px] xl:min-h-[130px] xl:max-h-[150px] overflow-hidden">
                                   <img
-                                    src={product.url || '/uploads/good.png'}
+                                    src={product.url || '/placeholder.svg'}
                                     alt={language === 'ar' ? product.altAr : product.alt}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     loading="lazy"
                                     decoding="async"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
-                                      if (target.src !== '/uploads/good.png') {
-                                        target.src = '/uploads/good.png';
+                                      if (!target.src.includes('/placeholder.svg')) {
+                                        target.src = '/placeholder.svg';
                                       }
                                     }}
                                   />
@@ -929,15 +929,15 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                                 >
                                   <div className={`aspect-[3/2] flex items-center justify-center min-h-[150px] sm:min-h-[180px] md:min-h-[220px] relative`}>
                                     <img
-                                      src={(product as any).url || (product as any).image || '/uploads/good.png'}
+                                      src={(product as any).url || (product as any).image || '/placeholder.svg'}
                                       alt={(product as any).name || (product as any).alt || 'Product'}
                                       className="w-full h-full object-cover"
                                       loading="lazy"
                                       decoding="async"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement;
-                                        if (target.src !== '/uploads/good.png') {
-                                          target.src = '/uploads/good.png';
+                                        if (!target.src.includes('/placeholder.svg')) {
+                                          target.src = '/placeholder.svg';
                                         }
                                       }}
                                     />
@@ -1028,7 +1028,7 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                                       : currentAdvertisement.image.startsWith('/')
                                         ? currentAdvertisement.image
                                         : `/uploads/${currentAdvertisement.image.replace(/^uploads\//, '')}`)
-                                    : '/uploads/good.png'
+                                    : '/placeholder.svg'
                                 }
                                 alt={language === 'ar' ? currentAdvertisement.titleAr : currentAdvertisement.title}
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.15]"
@@ -1036,8 +1036,8 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                                 decoding="async"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
-                                  if (target.src !== '/uploads/good.png') {
-                                    target.src = '/uploads/good.png';
+                                  if (!target.src.includes('/placeholder.svg')) {
+                                    target.src = '/placeholder.svg';
                                   }
                                 }}
                               />
@@ -1095,7 +1095,7 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                                         : currentAdvertisement.image.startsWith('/')
                                           ? currentAdvertisement.image
                                           : `/uploads/${currentAdvertisement.image.replace(/^uploads\//, '')}`)
-                                      : '/uploads/good.png'
+                                      : '/placeholder.svg'
                                   }
                                   alt={language === 'ar' ? currentAdvertisement.titleAr : currentAdvertisement.title}
                                   className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto object-contain"
@@ -1103,8 +1103,8 @@ export function FashionStoreHero({ products, onLoadingChange }: FashionStoreHero
                                   decoding="async"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    if (target.src !== '/uploads/good.png') {
-                                      target.src = '/uploads/good.png';
+                                    if (!target.src.includes('/placeholder.svg')) {
+                                      target.src = '/placeholder.svg';
                                     }
                                   }}
                                 />

@@ -28,7 +28,7 @@ export function ProductImage({
     image,
     alt = '',
     className = '',
-    fallback = '/uploads/good.png',
+    fallback = '/placeholder.svg',
     onLoad,
     onError,
     onClick

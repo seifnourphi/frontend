@@ -49,7 +49,7 @@ export const DEFAULT_ADVERTISEMENTS: DefaultAdvertisement[] = [
     descriptionAr: 'اكتشف مجموعتنا المختارة من الأساسيات المميزة المصممة للراحة والتنوع. قطع خالدة تنتقل بسلاسة من النهار إلى الليل.',
     buttonText: 'Shop Collection',
     buttonTextAr: 'تسوق المجموعة',
-    image: '/uploads/good.png',
+    image: '/placeholder.svg',
     price: 89.99,
     originalPrice: 129.99,
     displayType: 'SINGLE',
