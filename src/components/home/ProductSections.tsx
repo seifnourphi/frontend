@@ -25,7 +25,7 @@ interface Product {
   isBestseller: boolean;
   stockQuantity: number;
   category: {
-    id: number;
+    id: string | number;
     name: string;
     nameAr?: string;
   };

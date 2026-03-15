@@ -9,9 +9,9 @@ import { ShoppingCart, Heart, Eye, Star, ChevronLeft, ChevronRight, Grid, List, 
 import { getImageSrc } from '@/lib/image-utils';
 
 interface Product {
-  id: string;
+  id: string | number;
   name: string;
-  nameAr: string;
+  nameAr?: string;
   description?: string;
   descriptionAr?: string;
   price: number;
@@ -19,15 +19,15 @@ interface Product {
   discountPercent?: number | null;
   images: { url: string; alt?: string; altAr?: string }[];
   category: {
-    id: string;
+    id: string | number;
     name: string;
-    nameAr: string;
-    slug: string
+    nameAr?: string;
+    slug?: string
   };
   stockQuantity: number;
   slug: string;
-  sku: string;
-  variants: any[];
+  sku?: string;
+  variants?: any[];
   variantCombinations?: Array<{
     id: string;
     size?: string | null;
@@ -322,7 +322,7 @@ export default function ProductsPage() {
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const productName = language === 'ar' ? product.nameAr : product.name;
+      const productName = (language === 'ar' ? (product.nameAr || product.name) : product.name);
       const productDesc = language === 'ar' ? (product.descriptionAr || '') : (product.description || '');
       if (!productName.toLowerCase().includes(searchLower) && !productDesc.toLowerCase().includes(searchLower)) {
         return false;
@@ -369,8 +369,8 @@ export default function ProductsPage() {
       case 'price-high':
         return getDisplayPrice(b) - getDisplayPrice(a);
       case 'name':
-        const nameA = language === 'ar' ? a.nameAr : a.name;
-        const nameB = language === 'ar' ? b.nameAr : b.name;
+        const nameA = language === 'ar' ? (a.nameAr || a.name) : a.name;
+        const nameB = language === 'ar' ? (b.nameAr || b.name) : b.name;
         return nameA.localeCompare(nameB);
       case 'newest':
         return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
@@ -428,8 +428,8 @@ export default function ProductsPage() {
 
     // Fallback: Use old variants system (for legacy products)
     if (size && color) {
-      const sizeVariant = selectedProductForModal.variants.find((v: any) => v.type === 'SIZE' && v.value === size);
-      const colorVariant = selectedProductForModal.variants.find((v: any) => v.type === 'COLOR' && v.value === color);
+      const sizeVariant = (selectedProductForModal?.variants || []).find((v: any) => v.type === 'SIZE' && v.value === size);
+      const colorVariant = (selectedProductForModal?.variants || []).find((v: any) => v.type === 'COLOR' && v.value === color);
 
       // Check if both variants have stock defined
       if (sizeVariant?.stock !== undefined) {
@@ -439,12 +439,12 @@ export default function ProductsPage() {
         return colorVariant.stock > 0;
       }
     } else if (size) {
-      const sizeVariant = selectedProductForModal.variants.find((v: any) => v.type === 'SIZE' && v.value === size);
+      const sizeVariant = (selectedProductForModal?.variants || []).find((v: any) => v.type === 'SIZE' && v.value === size);
       if (sizeVariant?.stock !== undefined) {
         return sizeVariant.stock > 0;
       }
     } else if (color) {
-      const colorVariant = selectedProductForModal.variants.find((v: any) => v.type === 'COLOR' && v.value === color);
+      const colorVariant = (selectedProductForModal?.variants || []).find((v: any) => v.type === 'COLOR' && v.value === color);
       if (colorVariant?.stock !== undefined) {
         return colorVariant.stock > 0;
       }
@@ -528,7 +528,7 @@ export default function ProductsPage() {
     let availableStock = selectedProductForModal.stockQuantity;
 
     if (selectedSize || selectedColor) {
-      const selectedVariant = selectedProductForModal.variants.find((v: any) =>
+      const selectedVariant = (selectedProductForModal?.variants || []).find((v: any) =>
         (selectedSize && v.type === 'SIZE' && v.value === selectedSize) ||
         (selectedColor && v.type === 'COLOR' && v.value === selectedColor)
       );
@@ -544,8 +544,8 @@ export default function ProductsPage() {
   const handleAddToCartFromModal = () => {
     if (!selectedProductForModal) return;
 
-    const sizes = selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE');
-    const colors = selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR');
+    const sizes = (selectedProductForModal?.variants || []).filter((v: any) => v.type === 'SIZE');
+    const colors = (selectedProductForModal?.variants || []).filter((v: any) => v.type === 'COLOR');
 
     // Validate selection
     if ((sizes.length > 0 && !selectedSize) || (colors.length > 0 && !selectedColor)) {
@@ -565,9 +565,9 @@ export default function ProductsPage() {
     const imageUrl = getImageSrc(firstImage as any, '/uploads/good.png');
 
     addToCart({
-      name: language === 'ar' ? selectedProductForModal.nameAr : selectedProductForModal.name,
-      nameAr: selectedProductForModal.nameAr,
-      productId: selectedProductForModal.id,
+      name: language === 'ar' ? (selectedProductForModal.nameAr || selectedProductForModal.name) : selectedProductForModal.name,
+      nameAr: selectedProductForModal.nameAr || selectedProductForModal.name,
+      productId: selectedProductForModal.id.toString(),
       price: displayPrice,
       image: imageUrl,
       quantity: quantity,
@@ -1275,13 +1275,13 @@ export default function ProductsPage() {
               {/* Variant Selection */}
               <div className="space-y-6">
                 {/* Sizes */}
-                {selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE').length > 0 && (
+                {(selectedProductForModal?.variants || []).filter((v: any) => v.type === 'SIZE').length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">
                       {language === 'ar' ? 'المقاس:' : 'Size:'}
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE').map((size: any) => {
+                      {(selectedProductForModal?.variants || []).filter((v: any) => v.type === 'SIZE').map((size: any) => {
                         // Check if size has stock in general (without color)
                         const hasStockGeneral = hasStockForCombination(size.value, undefined);
                         // Check if size has stock for selected color (if color is selected)
@@ -1333,13 +1333,13 @@ export default function ProductsPage() {
                 )}
 
                 {/* Colors */}
-                {selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR').length > 0 && (
+                {(selectedProductForModal?.variants || []).filter((v: any) => v.type === 'COLOR').length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">
                       {language === 'ar' ? 'اللون:' : 'Color:'}
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                      {selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR').map((color: any) => {
+                      {(selectedProductForModal?.variants || []).filter((v: any) => v.type === 'COLOR').map((color: any) => {
                         const hasStock = selectedSize
                           ? hasStockForCombination(selectedSize, color.value)
                           : hasStockForCombination(undefined, color.value);
@@ -1434,16 +1434,21 @@ export default function ProductsPage() {
               <button
                 onClick={handleAddToCartFromModal}
                 disabled={(() => {
-                  const sizes = selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE');
-                  const colors = selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR');
-                  const needsSize = sizes.length > 0 && !selectedSize;
-                  const needsColor = colors.length > 0 && !selectedColor;
-                  const hasNoStock = getAvailableStock() === 0;
-                  return needsSize || needsColor || hasNoStock;
+                  const sizes = (selectedProductForModal?.variants || []).filter((v: any) => v.type === 'SIZE');
+                  const colors = (selectedProductForModal?.variants || []).filter((v: any) => v.type === 'COLOR');
+                  const needsSelection = (sizes.length > 0 && !selectedSize) ||
+                    (colors.length > 0 && !selectedColor) ||
+                    (sizes.length > 0 && colors.length > 0 && (!selectedSize || !selectedColor));
+                  const availableStock = getAvailableStock();
+                  // Only disable if stock is 0 AND variant is selected (or product has no variants)
+                  const hasVariantsSelected = Boolean(selectedSize || selectedColor);
+                  const hasNoVariants = sizes.length === 0 && colors.length === 0;
+                  const isOutOfStock = availableStock === 0 && (hasVariantsSelected || hasNoVariants);
+                  return needsSelection || isOutOfStock;
                 })()}
                 className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 mt-6 ${(() => {
-                  const sizes = selectedProductForModal.variants.filter((v: any) => v.type === 'SIZE');
-                  const colors = selectedProductForModal.variants.filter((v: any) => v.type === 'COLOR');
+                  const sizes = (selectedProductForModal?.variants || []).filter((v: any) => v.type === 'SIZE');
+                  const colors = (selectedProductForModal?.variants || []).filter((v: any) => v.type === 'COLOR');
                   const needsSize = sizes.length > 0 && !selectedSize;
                   const needsColor = colors.length > 0 && !selectedColor;
                   const hasNoStock = getAvailableStock() === 0;

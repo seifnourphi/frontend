@@ -43,18 +43,8 @@ const nextConfig = {
         minimize: true, // Minify code to obfuscate library names
       };
 
-      // Remove console.log statements in production
-      const TerserPlugin = require('terser-webpack-plugin');
-      config.optimization.minimizer = [
-        ...(config.optimization.minimizer || []),
-        new TerserPlugin({
-          terserOptions: {
-            compress: {
-              drop_console: true, // Remove console.log in production
-            },
-          },
-        }),
-      ];
+      // NOTE: We no longer manually configure Terser here.
+      // Instead, we use the built-in Next.js compiler options below.
 
       // Obfuscate module paths in production
       config.output = {
@@ -89,6 +79,12 @@ const nextConfig = {
   // Experimental features - keep minimal for security
   experimental: {
     // Only enable necessary features
+  },
+
+  // Compiler options
+  compiler: {
+    // Remove console.log statements in production
+    removeConsole: process.env.NODE_ENV === 'production',
   },
 
   // Rewrite /uploads to backend

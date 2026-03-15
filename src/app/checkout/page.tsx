@@ -629,7 +629,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-CSRF-Token': csrfToken, // Add CSRF token to header
+          'X-CSRF-Token': csrfToken || '', // Add CSRF token to header
         },
         credentials: 'include', // Include cookies for authentication
         body: formData,
@@ -797,7 +797,7 @@ export default function CheckoutPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken, // Add CSRF token to header
+          'X-CSRF-Token': csrfToken || '', // Add CSRF token to header
         },
         body: JSON.stringify({
           ...orderData,

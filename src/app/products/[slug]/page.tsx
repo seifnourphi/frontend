@@ -539,7 +539,7 @@ export default function ProductDetailsPage() {
         name: product.name,
         nameAr: product.nameAr,
         price: product.price,
-        salePrice: product.salePrice || null,
+        salePrice: product.salePrice || undefined,
         image: firstImage || '',
         quantity: quantity,
         selectedSize: selectedCombination?.size || selectedSize || undefined,
@@ -622,14 +622,16 @@ export default function ProductDetailsPage() {
   }, [showImageModal]);
 
   const nextImage = () => {
-    if (product && product.images && Array.isArray(product.images) && product.images.length > 0) {
-      setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+    if (product?.images && product.images.length > 0) {
+      const len = product.images.length;
+      setSelectedImageIndex((prev) => (prev + 1) % len);
     }
   };
 
   const prevImage = () => {
-    if (product && product.images && Array.isArray(product.images) && product.images.length > 0) {
-      setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    if (product?.images && product.images.length > 0) {
+      const len = product.images.length;
+      setSelectedImageIndex((prev) => (prev - 1 + len) % len);
     }
   };
 
@@ -1348,8 +1350,8 @@ export default function ProductDetailsPage() {
             <button
               onClick={handleAddToCart}
               disabled={(() => {
-                const sizes = product.variants.filter(v => v.type === 'SIZE');
-                const colors = product.variants.filter(v => v.type === 'COLOR');
+                const sizes = (product?.variants || []).filter(v => v.type === 'SIZE');
+                const colors = (product?.variants || []).filter(v => v.type === 'COLOR');
                 const needsSelection = (sizes.length > 0 && !selectedSize) ||
                   (colors.length > 0 && !selectedColor) ||
                   (sizes.length > 0 && colors.length > 0 && (!selectedSize || !selectedColor));
@@ -1361,8 +1363,8 @@ export default function ProductDetailsPage() {
                 return Boolean(isOutOfStock || isAddingToCart || needsSelection);
               })()}
               className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 ${(() => {
-                const sizes = product.variants.filter(v => v.type === 'SIZE');
-                const colors = product.variants.filter(v => v.type === 'COLOR');
+                const sizes = (product?.variants || []).filter(v => v.type === 'SIZE');
+                const colors = (product?.variants || []).filter(v => v.type === 'COLOR');
                 const needsSelection = (sizes.length > 0 && !selectedSize) ||
                   (colors.length > 0 && !selectedColor) ||
                   (sizes.length > 0 && colors.length > 0 && (!selectedSize || !selectedColor));
@@ -1390,8 +1392,8 @@ export default function ProductDetailsPage() {
                 <>
                   <Plus className="w-5 h-5" />
                   {(() => {
-                    const sizes = product.variants.filter(v => v.type === 'SIZE');
-                    const colors = product.variants.filter(v => v.type === 'COLOR');
+                    const sizes = (product?.variants || []).filter(v => v.type === 'SIZE');
+                    const colors = (product?.variants || []).filter(v => v.type === 'COLOR');
                     const availableStock = getAvailableStock();
 
                     // Check if selection is needed first

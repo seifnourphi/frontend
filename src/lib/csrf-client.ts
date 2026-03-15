@@ -42,7 +42,7 @@ async function fetchCSRFToken(): Promise<string> {
     csrfTokenCache = data.csrfToken;
     tokenExpiry = Date.now() + TOKEN_TTL;
 
-    return csrfTokenCache;
+    return data.csrfToken;
   } finally {
     clearTimeout(timeout);
   }

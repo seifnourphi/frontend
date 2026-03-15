@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { 
-  Package, 
-  Truck, 
-  CheckCircle, 
+import {
+  Package,
+  Truck,
+  CheckCircle,
   Clock,
   MapPin,
   Calendar,
@@ -31,7 +32,7 @@ interface TrackingInfo {
   }>;
 }
 
-export default function TrackOrderPage() {
+function TrackOrderContent() {
   const { language } = useLanguage();
   const searchParams = useSearchParams();
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -74,20 +75,20 @@ export default function TrackOrderPage() {
         // Use the values directly from URL params
         const finalTracking = tracking || '';
         const finalOrder = order || '';
-        
+
         if (finalTracking || finalOrder) {
           setIsLoading(true);
           setError('');
-          
+
           // Get token if available
-          const token = typeof window !== 'undefined' 
+          const token = typeof window !== 'undefined'
             ? (localStorage.getItem('token') || document.cookie.split('token=')[1]?.split(';')[0] || document.cookie.split('__Host-token=')[1]?.split(';')[0])
             : null;
 
           const headers: HeadersInit = {
             'Content-Type': 'application/json',
           };
-          
+
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
           }
@@ -131,7 +132,7 @@ export default function TrackOrderPage() {
             });
         }
       }, 100);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [searchParams, language]);
@@ -154,7 +155,7 @@ export default function TrackOrderPage() {
         // If we can't extract a value, trackingValue remains empty and will use state
       }
     }
-    
+
     let orderValue: string = '';
     if (overrideOrder !== undefined && overrideOrder !== null) {
       if (typeof overrideOrder === 'string') {
@@ -172,11 +173,11 @@ export default function TrackOrderPage() {
         // If we can't extract a value, orderValue remains empty and will use state
       }
     }
-    
+
     // Use override values if we successfully extracted them, otherwise fall back to state
     const finalTracking = (trackingValue || trackingNumber || '').trim();
     const finalOrder = (orderValue || orderNumber || '').trim();
-    
+
     if (!finalTracking && !finalOrder) {
       setError(language === 'ar' ? 'يرجى إدخال رقم التتبع أو رقم الطلب' : 'Please enter tracking number or order number');
       return;
@@ -184,17 +185,17 @@ export default function TrackOrderPage() {
 
     setIsLoading(true);
     setError('');
-    
+
     try {
       // Get token if available (optional for guest tracking)
-      const token = typeof window !== 'undefined' 
+      const token = typeof window !== 'undefined'
         ? (localStorage.getItem('token') || document.cookie.split('token=')[1]?.split(';')[0] || document.cookie.split('__Host-token=')[1]?.split(';')[0])
         : null;
 
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-      
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -280,7 +281,7 @@ export default function TrackOrderPage() {
       const Icon = iconMap[status as keyof typeof iconMap] || CheckCircle;
       return <Icon className="w-5 h-5 text-white" />;
     }
-    
+
     const iconMap = {
       pending: Clock,
       processing: Package,
@@ -288,7 +289,7 @@ export default function TrackOrderPage() {
       out_for_delivery: Truck,
       delivered: CheckCircle
     };
-    
+
     const Icon = iconMap[status as keyof typeof iconMap] || Clock;
     return <Icon className="w-5 h-5" />;
   };
@@ -312,7 +313,7 @@ export default function TrackOrderPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
             {language === 'ar' ? 'البحث عن طلبك' : 'Search for Your Order'}
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -326,11 +327,11 @@ export default function TrackOrderPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               />
             </div>
-            
+
             <div className="text-center text-gray-500">
               {language === 'ar' ? 'أو' : 'OR'}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {language === 'ar' ? 'رقم الطلب' : 'Order Number'}
@@ -343,15 +344,15 @@ export default function TrackOrderPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#DAA520] focus:border-transparent"
               />
             </div>
-            
+
             {error && (
               <div className="text-red-600 text-sm">
                 {error}
               </div>
             )}
-            
+
             <button
-              onClick={handleTrack}
+              onClick={() => handleTrack()}
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#DAA520] text-white rounded-lg hover:bg-[#B8860B] transition-colors disabled:opacity-50"
             >
@@ -360,7 +361,7 @@ export default function TrackOrderPage() {
               ) : (
                 <Search className="w-5 h-5" />
               )}
-              {isLoading 
+              {isLoading
                 ? (language === 'ar' ? 'جاري البحث...' : 'Searching...')
                 : (language === 'ar' ? 'تتبع الطلب' : 'Track Order')
               }
@@ -395,21 +396,21 @@ export default function TrackOrderPage() {
                   })()}
                 </div>
               </div>
-              
+
               {(trackingInfo.currentLocation || trackingInfo.currentLocationAr) && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-blue-600" />
                     <span className="text-sm text-blue-800">
                       <strong>{language === 'ar' ? 'الموقع الحالي:' : 'Current Location:'}</strong>{' '}
-                      {language === 'ar' && trackingInfo.currentLocationAr 
-                        ? trackingInfo.currentLocationAr 
+                      {language === 'ar' && trackingInfo.currentLocationAr
+                        ? trackingInfo.currentLocationAr
                         : trackingInfo.currentLocation}
                     </span>
                   </div>
                 </div>
               )}
-              
+
               {trackingInfo.estimatedDelivery && (
                 <div className="mt-2 p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -428,19 +429,18 @@ export default function TrackOrderPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 {language === 'ar' ? 'مسار التتبع' : 'Tracking Timeline'}
               </h3>
-              
+
               <div className="relative">
                 {/* Vertical line */}
                 <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                
+
                 <div className="space-y-8">
                   {trackingInfo.timeline.map((item, index) => (
                     <div key={index} className="flex items-start gap-4 relative">
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                        item.completed 
-                          ? 'bg-green-500 border-green-500 text-white' 
-                          : 'bg-white border-gray-300 text-gray-400'
-                      }`}>
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 ${item.completed
+                        ? 'bg-green-500 border-green-500 text-white'
+                        : 'bg-white border-gray-300 text-gray-400'
+                        }`}>
                         {getTimelineIcon(item.status, item.completed)}
                       </div>
                       <div className="flex-1 pb-4">
@@ -472,17 +472,17 @@ export default function TrackOrderPage() {
             {language === 'ar' ? 'تحتاج مساعدة؟' : 'Need Help?'}
           </h3>
           <p className="text-gray-600 mb-4">
-            {language === 'ar' 
+            {language === 'ar'
               ? 'إذا كنت تواجه مشاكل في تتبع طلبك، يرجى الاتصال بخدمة العملاء.'
               : 'If you\'re having trouble tracking your order, please contact customer service.'
             }
           </p>
           <div className="flex flex-wrap gap-4">
-            <button 
+            <button
               onClick={() => {
                 // Open WhatsApp with tracking order message
                 const orderRef = trackingInfo?.orderNumber || orderNumber || trackingNumber;
-                const message = language === 'ar' 
+                const message = language === 'ar'
                   ? `مرحباً، أحتاج مساعدة بخصوص تتبع طلبي${orderRef ? ` رقم ${orderRef}` : ''}`
                   : `Hello, I need help with tracking my order${orderRef ? ` #${orderRef}` : ''}`;
                 const cleanNumber = whatsappNumber.replace(/[^\d]/g, '');
@@ -494,17 +494,17 @@ export default function TrackOrderPage() {
               <Package className="w-4 h-4" />
               {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
             </button>
-            <button 
+            <button
               onClick={() => {
                 // Refresh tracking if we have order info
                 // Use trackingInfo if available, otherwise use state values
                 // Ensure we extract string values only
                 const orderRefValue = trackingInfo?.orderNumber;
                 const trackNumValue = trackingInfo?.trackingNumber;
-                
+
                 const orderRef = (typeof orderRefValue === 'string' ? orderRefValue : null) || orderNumber || trackingNumber;
                 const trackNum = (typeof trackNumValue === 'string' ? trackNumValue : null) || trackingNumber || orderNumber;
-                
+
                 if (orderRef || trackNum) {
                   // Call handleTrack with the values directly (guaranteed to be strings)
                   handleTrack(trackNum, orderRef);
@@ -526,5 +526,20 @@ export default function TrackOrderPage() {
       {/* Footer */}
       <Footer />
     </div>
+  );
+}
+
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 text-[#DAA520] animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading tracking information...</p>
+        </div>
+      </div>
+    }>
+      <TrackOrderContent />
+    </Suspense>
   );
 }

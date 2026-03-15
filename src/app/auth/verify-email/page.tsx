@@ -6,7 +6,9 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Mail, ArrowLeft, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-export default function VerifyEmailPage() {
+import { Suspense } from 'react';
+
+function VerifyEmailContent() {
   const { language } = useLanguage();
   const searchParams = useSearchParams();
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '', '']);
@@ -56,7 +58,7 @@ export default function VerifyEmailPage() {
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
-    
+
     const newCode = [...verificationCode];
     newCode[index] = value;
     setVerificationCode(newCode);
@@ -104,11 +106,11 @@ export default function VerifyEmailPage() {
 
       if (response.ok) {
         setSuccess(language === 'ar' ? 'تم تأكيد البريد الإلكتروني بنجاح!' : 'Email verified successfully!');
-        
+
         // Clear pending data from localStorage
         localStorage.removeItem('pendingEmail');
         localStorage.removeItem('verificationCode');
-        
+
         // Redirect to login page
         setTimeout(() => {
           window.location.href = '/auth/login';
@@ -177,7 +179,7 @@ export default function VerifyEmailPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{fontFamily: 'serif'}}>
+            <div className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{ fontFamily: 'serif' }}>
               R<span className="text-2xl">i</span>DAA
             </div>
             <div className="w-full h-0.5 mt-1" style={{
@@ -196,7 +198,7 @@ export default function VerifyEmailPage() {
             {language === 'ar' ? 'تأكيد البريد الإلكتروني' : 'Verify Email'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {language === 'ar' 
+            {language === 'ar'
               ? 'أدخل الكود المكون من 7 أرقام الذي أرسلناه إلى بريدك الإلكتروني'
               : 'Enter the 7-digit code we sent to your email address'
             }
@@ -206,55 +208,55 @@ export default function VerifyEmailPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-sm border border-gray-200 sm:rounded-lg sm:px-10">
-              {/* Email Info */}
-              <div className="text-center mb-6">
-                <p className="text-sm text-gray-600">
-                  {language === 'ar' ? 'تم إرسال الكود إلى:' : 'Code sent to:'}
+          {/* Email Info */}
+          <div className="text-center mb-6">
+            <p className="text-sm text-gray-600">
+              {language === 'ar' ? 'تم إرسال الكود إلى:' : 'Code sent to:'}
+            </p>
+            <p className="text-sm font-medium text-gray-900">{email}</p>
+
+            {/* Developer Tools Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowDevTools(!showDevTools)}
+              className="mt-2 text-xs text-blue-600 hover:text-blue-500 underline"
+            >
+              {language === 'ar' ? 'أدوات المطور' : 'Developer Tools'}
+            </button>
+
+            {/* Developer Tools Panel */}
+            {showDevTools && (
+              <div className="mt-4 p-3 bg-gray-100 rounded-md text-left">
+                <p className="text-xs text-gray-600 mb-2">
+                  {language === 'ar' ? 'للتطوير فقط - ملء الكود تلقائياً:' : 'Development only - Auto-fill code:'}
                 </p>
-                <p className="text-sm font-medium text-gray-900">{email}</p>
-                
-                {/* Developer Tools Toggle */}
                 <button
                   type="button"
-                  onClick={() => setShowDevTools(!showDevTools)}
-                  className="mt-2 text-xs text-blue-600 hover:text-blue-500 underline"
+                  onClick={fillCodeFromStorage}
+                  className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
                 >
-                  {language === 'ar' ? 'أدوات المطور' : 'Developer Tools'}
+                  {language === 'ar' ? 'ملء الكود' : 'Fill Code'}
                 </button>
-                
-                {/* Developer Tools Panel */}
-                {showDevTools && (
-                  <div className="mt-4 p-3 bg-gray-100 rounded-md text-left">
-                    <p className="text-xs text-gray-600 mb-2">
-                      {language === 'ar' ? 'للتطوير فقط - ملء الكود تلقائياً:' : 'Development only - Auto-fill code:'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={fillCodeFromStorage}
-                      className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-                    >
-                      {language === 'ar' ? 'ملء الكود' : 'Fill Code'}
-                    </button>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {language === 'ar' 
-                        ? 'هذا الزر يملأ الكود من التخزين المحلي للتطوير فقط'
-                        : 'This button fills code from local storage for development only'
-                      }
-                    </p>
-                  </div>
-                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'ar'
+                    ? 'هذا الزر يملأ الكود من التخزين المحلي للتطوير فقط'
+                    : 'This button fills code from local storage for development only'
+                  }
+                </p>
               </div>
+            )}
+          </div>
 
           {/* Verification Code Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
               {language === 'ar' ? 'كود التحقق' : 'Verification Code'}
             </label>
-            
+
             {/* Instructions */}
             <div className="text-center mb-4">
               <p className="text-xs text-gray-500">
-                {language === 'ar' 
+                {language === 'ar'
                   ? 'يرجى إدخال الكود المكون من 7 أرقام الذي تم إرساله إلى بريدك الإلكتروني'
                   : 'Please enter the 7-digit code sent to your email'
                 }
@@ -341,7 +343,7 @@ export default function VerifyEmailPage() {
           {/* Help Text */}
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
             <p className="text-xs text-gray-600 text-center">
-              {language === 'ar' 
+              {language === 'ar'
                 ? 'إذا لم تجد الرسالة في صندوق الوارد، تحقق من مجلد الرسائل المزعجة'
                 : 'If you don\'t see the email in your inbox, check your spam folder'
               }
@@ -350,5 +352,20 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

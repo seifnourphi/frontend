@@ -8,7 +8,9 @@ import { Lock, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-r
 import { validatePassword } from '@/lib/client-validation';
 import { PasswordStrengthBar } from '@/components/auth/PasswordStrengthBar';
 
-export default function ResetPasswordPage() {
+import { Suspense } from 'react';
+
+function ResetPasswordContent() {
   const { language } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -120,7 +122,7 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{fontFamily: 'serif'}}>
+            <div className="text-3xl font-bold text-[#DAA520] tracking-wide" style={{ fontFamily: 'serif' }}>
               R<span className="text-2xl">i</span>DAA
             </div>
             <div className="w-full h-0.5 mt-1" style={{
@@ -136,10 +138,10 @@ export default function ResetPasswordPage() {
             {mounted ? (language === 'ar' ? 'إعادة تعيين كلمة المرور' : 'Reset Password') : 'إعادة تعيين كلمة المرور'}
           </h2>
           <p className="mt-2 text-sm text-gray-600" suppressHydrationWarning>
-            {mounted 
-              ? (language === 'ar' 
-                  ? 'أدخل كلمة مرور جديدة لحسابك'
-                  : 'Enter a new password for your account')
+            {mounted
+              ? (language === 'ar'
+                ? 'أدخل كلمة مرور جديدة لحسابك'
+                : 'Enter a new password for your account')
               : 'أدخل كلمة مرور جديدة لحسابك'}
           </p>
         </div>
@@ -276,6 +278,21 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#DAA520] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
 

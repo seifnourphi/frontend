@@ -24,6 +24,8 @@ export interface RegisterData {
   phone?: string;
   password: string;
   subscribeNewsletter?: boolean;
+  language?: string;
+  name?: string;
 }
 
 interface AuthContextType {
@@ -73,15 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, rememberMe: boolean = false): Promise<boolean | { mfaRequired: boolean; tempToken?: string } | { success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
-      
+
       // Add timeout for login request
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Login timeout')), 15000); // 15 seconds
       });
-      
+
       // CRITICAL SECURITY: Ensure we use HTTPS in production
       const apiUrl = '/api/auth/login';
-      
+
       // In production, ensure we're using HTTPS
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
         const isSecure = window.location.protocol === 'https:';
@@ -89,16 +91,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('HTTPS required for login in production');
         }
       }
-      
+
       const loginPromise = fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include', // Important for cookies
-        body: JSON.stringify({ 
-          email, 
-          password, 
+        body: JSON.stringify({
+          email,
+          password,
           rememberMe: rememberMe === true // Ensure boolean value
         }),
       });
@@ -117,14 +119,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const nameParts = (data.user.name || '').split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
-        
+
         const frontendUser = {
           ...data.user,
           firstName: firstName || data.user.firstName || '',
           lastName: lastName || data.user.lastName || '',
           name: data.user.name || `${firstName} ${lastName}`.trim()
         };
-        
+
         setUser(frontendUser);
         if (typeof window !== 'undefined') {
           localStorage.setItem('user', JSON.stringify(frontendUser));
@@ -147,11 +149,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyMfaLogin = async (code: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      
-      const tempToken = typeof window !== 'undefined' 
-        ? localStorage.getItem('mfa-temp-token') 
+
+      const tempToken = typeof window !== 'undefined'
+        ? localStorage.getItem('mfa-temp-token')
         : null;
-      
+
       if (!tempToken) {
         return false;
       }
@@ -171,14 +173,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const nameParts = (data.user.name || '').split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
-        
+
         const frontendUser = {
           ...data.user,
           firstName: firstName || data.user.firstName || '',
           lastName: lastName || data.user.lastName || '',
           name: data.user.name || `${firstName} ${lastName}`.trim()
         };
-        
+
         setUser(frontendUser);
         if (typeof window !== 'undefined') {
           localStorage.setItem('user', JSON.stringify(frontendUser));
@@ -201,26 +203,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (userData: RegisterData): Promise<{ success: boolean; email?: string; verificationCode?: string; error?: string }> => {
     try {
       setIsLoading(true);
-      
+
       // Get current language from localStorage or default to 'en'
-      const currentLanguage = typeof window !== 'undefined' 
+      const currentLanguage = typeof window !== 'undefined'
         ? (localStorage.getItem('language') || 'en')
         : 'en';
-      
+
       // Prepare data without language field (backend doesn't need it)
       const { language, firstName, lastName, ...restData } = userData;
-      
+
       // Combine firstName and lastName into name for backend
-      const name = firstName && lastName 
+      const name = firstName && lastName
         ? `${firstName} ${lastName}`.trim()
         : firstName || lastName || '';
-      
+
       // Prepare register data with name field
       const registerData = {
         ...restData,
         name: name || restData.name || '', // Use combined name or fallback to existing name
       };
-      
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -262,12 +264,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyCode = async (email: string, code: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      
+
       // Get current language from localStorage or default to 'en'
-      const currentLanguage = typeof window !== 'undefined' 
+      const currentLanguage = typeof window !== 'undefined'
         ? (localStorage.getItem('language') || 'en')
         : 'en';
-      
+
       const response = await fetch('/api/auth/verify-code', {
         method: 'POST',
         headers: {
@@ -284,14 +286,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const nameParts = (data.user.name || '').split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
-        
+
         const frontendUser = {
           ...data.user,
           firstName: firstName || data.user.firstName || '',
           lastName: lastName || data.user.lastName || '',
           name: data.user.name || `${firstName} ${lastName}`.trim()
         };
-        
+
         setUser(frontendUser);
         if (typeof window !== 'undefined') {
           localStorage.setItem('user', JSON.stringify(frontendUser));
@@ -313,12 +315,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resendCode = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
-      
+
       // Get current language from localStorage or default to 'en'
-      const currentLanguage = typeof window !== 'undefined' 
+      const currentLanguage = typeof window !== 'undefined'
         ? (localStorage.getItem('language') || 'en')
         : 'en';
-      
+
       const response = await fetch('/api/auth/resend-code', {
         method: 'POST',
         headers: {

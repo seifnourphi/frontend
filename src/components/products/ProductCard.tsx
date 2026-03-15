@@ -18,27 +18,31 @@ interface Product {
   salePrice?: number | null;
   discountPercent?: number | null;
   originalPrice?: number;
-  description: string;
+  description?: string;
   images: any[];
-  isFeatured: boolean;
-  isNew: boolean;
-  isBestseller: boolean;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestseller?: boolean;
   stockQuantity: number;
   category: {
     id: string | number;
     name: string;
     nameAr?: string;
+    slug?: string;
   };
   rating?: number;
   reviewCount?: number;
+  sku?: string;
   variants?: any[];
 }
 
 interface ProductCardProps {
   product: Product;
+  viewMode?: 'grid' | 'list';
+  onOpenVariantModal?: (product: Product) => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, viewMode = 'grid', onOpenVariantModal }: ProductCardProps) {
   const { language } = useLanguage();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();

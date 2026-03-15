@@ -5,10 +5,10 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useWishlist } from '@/components/providers/WishlistProvider';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
-import { 
-  Heart, 
-  ShoppingCart, 
-  Trash2, 
+import {
+  Heart,
+  ShoppingCart,
+  Trash2,
   Eye,
   Star,
   Package,
@@ -54,7 +54,7 @@ export default function WishlistPage() {
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
-  
+
   // Variant modal state
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedProductForModal, setSelectedProductForModal] = useState<WishlistItem | null>(null);
@@ -64,7 +64,7 @@ export default function WishlistPage() {
   const [isFetchingProduct, setIsFetchingProduct] = useState(false);
 
   const formatPrice = (price: number) => {
-    return language === 'ar' 
+    return language === 'ar'
       ? `ج.م ${price.toLocaleString('en-US')}`
       : `EGP ${price.toLocaleString('en-US')}`;
   };
@@ -86,10 +86,10 @@ export default function WishlistPage() {
             ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url || '')
             : '',
           slug: product.slug || '',
-          category: product.category 
-            ? (typeof product.category === 'object' 
-                ? { name: product.category.name || '', nameAr: product.category.nameAr || product.category.name || '' }
-                : { name: '', nameAr: '' })
+          category: product.category
+            ? (typeof product.category === 'object'
+              ? { name: product.category.name || '', nameAr: product.category.nameAr || product.category.name || '' }
+              : { name: '', nameAr: '' })
             : { name: '', nameAr: '' },
           stockQuantity: product.stockQuantity || 0,
           variants: product.variants || [],
@@ -107,7 +107,7 @@ export default function WishlistPage() {
     try {
       // Check if product has variants - first check if variants exist in item
       let productWithVariants = item;
-      
+
       // If item doesn't have variants data, fetch it
       if (!item.variants || item.variants.length === 0) {
         setIsFetchingProduct(true);
@@ -117,10 +117,10 @@ export default function WishlistPage() {
         }
         setIsFetchingProduct(false);
       }
-      
+
       const sizes = (productWithVariants.variants || []).filter((v: any) => v.type === 'SIZE');
       const colors = (productWithVariants.variants || []).filter((v: any) => v.type === 'COLOR');
-      
+
       // If product has variants, show modal to select them
       if (sizes.length > 0 || colors.length > 0) {
         setSelectedProductForModal(productWithVariants);
@@ -130,7 +130,7 @@ export default function WishlistPage() {
         setQuantity(1);
         return;
       }
-      
+
       // No variants, add directly to cart
       addToCart({
         productId: item.id,
@@ -141,7 +141,7 @@ export default function WishlistPage() {
         image: item.image,
         quantity: 1
       });
-      
+
       showToast(
         language === 'ar' ? 'تم إضافة المنتج للسلة!' : 'Product added to cart!',
         'success',
@@ -161,7 +161,7 @@ export default function WishlistPage() {
   const hasStockForCombination = (size?: string, color?: string): boolean => {
     if (!selectedProductForModal) return false;
     if (!size && !color) return selectedProductForModal.stockQuantity > 0;
-    
+
     // Use variantCombinations if available (new system)
     if (selectedProductForModal.variantCombinations && selectedProductForModal.variantCombinations.length > 0) {
       // If both size and color are provided, find exact match
@@ -172,7 +172,7 @@ export default function WishlistPage() {
         if (matchingCombo) {
           return matchingCombo.stock > 0;
         }
-      } 
+      }
       // If only size is provided, check if any combination with this size has stock
       else if (size) {
         const matchingCombos = selectedProductForModal.variantCombinations.filter(combo => combo.size === size);
@@ -184,12 +184,12 @@ export default function WishlistPage() {
         return matchingCombos.some(combo => combo.stock > 0);
       }
     }
-    
+
     // Fallback: Use old variants system (for legacy products)
     if (size && color) {
       const sizeVariant = selectedProductForModal.variants?.find((v: any) => v.type === 'SIZE' && v.value === size);
       const colorVariant = selectedProductForModal.variants?.find((v: any) => v.type === 'COLOR' && v.value === color);
-      
+
       // Check if both variants have stock defined
       if (sizeVariant?.stock !== undefined) {
         return sizeVariant.stock > 0;
@@ -208,14 +208,14 @@ export default function WishlistPage() {
         return colorVariant.stock > 0;
       }
     }
-    
+
     return selectedProductForModal.stockQuantity > 0;
   };
 
   // Get available stock for selected combination
   const getAvailableStock = (): number => {
     if (!selectedProductForModal) return 0;
-    
+
     // Priority 1: Use variantCombinations (new system) if available
     if (selectedProductForModal.variantCombinations && selectedProductForModal.variantCombinations.length > 0) {
       // If we have both size and color selected, find exact match
@@ -225,13 +225,13 @@ export default function WishlistPage() {
           const colorMatch = combo.color === selectedColor;
           return sizeMatch && colorMatch;
         });
-        
+
         if (matchingCombo) {
           return matchingCombo.stock;
         }
       } else if (selectedSize) {
         // Only size selected, find matching combos and sum stock
-        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo => 
+        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo =>
           combo.size === selectedSize
         );
         if (matchingCombos.length > 0) {
@@ -239,32 +239,32 @@ export default function WishlistPage() {
         }
       } else if (selectedColor) {
         // Only color selected, find matching combos and sum stock
-        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo => 
+        const matchingCombos = selectedProductForModal.variantCombinations.filter(combo =>
           combo.color === selectedColor
         );
         if (matchingCombos.length > 0) {
           return matchingCombos.reduce((sum, combo) => sum + combo.stock, 0);
         }
       }
-      
+
       // If no match, return 0 (this specific combination doesn't exist)
       return 0;
     }
-    
+
     // Priority 2: Fallback to old variants system (legacy products)
     let availableStock = selectedProductForModal.stockQuantity;
-    
+
     if (selectedSize || selectedColor) {
-      const selectedVariant = selectedProductForModal.variants?.find((v: any) => 
+      const selectedVariant = selectedProductForModal.variants?.find((v: any) =>
         (selectedSize && v.type === 'SIZE' && v.value === selectedSize) ||
         (selectedColor && v.type === 'COLOR' && v.value === selectedColor)
       );
-      
+
       if (selectedVariant && selectedVariant.stock !== undefined) {
         availableStock = selectedVariant.stock;
       }
     }
-    
+
     return availableStock;
   };
 
@@ -295,31 +295,31 @@ export default function WishlistPage() {
       'mint': '#98FF98',
       'lavender': '#E6E6FA',
     };
-    
+
     const normalizedColor = colorName.toLowerCase().trim();
     return colorMap[normalizedColor] || colorName;
   };
 
   const handleAddToCartFromModal = () => {
     if (!selectedProductForModal) return;
-    
+
     const sizes = (selectedProductForModal.variants || []).filter((v: any) => v.type === 'SIZE');
     const colors = (selectedProductForModal.variants || []).filter((v: any) => v.type === 'COLOR');
-    
+
     // Validate selection
     if ((sizes.length > 0 && !selectedSize) || (colors.length > 0 && !selectedColor)) {
       return;
     }
-    
+
     // Validate stock before adding to cart
     if (!hasStockForCombination(selectedSize || undefined, selectedColor || undefined)) {
       return;
     }
-    
-    const displayPrice = (selectedProductForModal.salePrice && selectedProductForModal.salePrice > 0) 
-      ? selectedProductForModal.salePrice 
+
+    const displayPrice = (selectedProductForModal.salePrice && selectedProductForModal.salePrice > 0)
+      ? selectedProductForModal.salePrice
       : selectedProductForModal.price;
-    
+
     addToCart({
       productId: selectedProductForModal.id,
       name: selectedProductForModal.name,
@@ -331,13 +331,13 @@ export default function WishlistPage() {
       selectedSize: selectedSize || undefined,
       selectedColor: selectedColor || undefined,
     });
-    
+
     showToast(
       language === 'ar' ? 'تم إضافة المنتج للسلة!' : 'Product added to cart!',
       'success',
       3000
     );
-    
+
     setShowVariantModal(false);
     setSelectedProductForModal(null);
     setSelectedSize('');
@@ -349,11 +349,11 @@ export default function WishlistPage() {
     setIsLoading(true);
     try {
       const availableItems = wishlistItems.filter((item: any) => (item as any).stockQuantity > 0);
-      
+
       if (availableItems.length === 0) {
         showToast(
           language === 'ar' ? 'لا توجد منتجات متوفرة في المخزون' : 'No products available in stock',
-          'warning',
+          'info',
           3000
         );
         return;
@@ -369,8 +369,8 @@ export default function WishlistPage() {
       }
 
       showToast(
-        language === 'ar' 
-          ? `تم إضافة ${addedCount} منتج للسلة بنجاح!` 
+        language === 'ar'
+          ? `تم إضافة ${addedCount} منتج للسلة بنجاح!`
           : `Successfully added ${addedCount} items to cart!`,
         'success',
         3000
@@ -430,8 +430,8 @@ export default function WishlistPage() {
               {language === 'ar' ? 'المفضلة فارغة' : 'Your wishlist is empty'}
             </h3>
             <p className="mt-2 text-gray-600">
-              {language === 'ar' 
-                ? 'لم تقم بإضافة أي منتجات للمفضلة بعد. ابدأ التسوق الآن!' 
+              {language === 'ar'
+                ? 'لم تقم بإضافة أي منتجات للمفضلة بعد. ابدأ التسوق الآن!'
                 : 'You haven\'t added any products to your wishlist yet. Start shopping now!'
               }
             </p>
@@ -456,8 +456,8 @@ export default function WishlistPage() {
                       {language === 'ar' ? 'منتجاتك المفضلة' : 'Your Favorite Products'}
                     </h2>
                     <p className="text-[#DAA520]/90 mt-1">
-                      {language === 'ar' 
-                        ? `${wishlistItems.length} منتج في المفضلة` 
+                      {language === 'ar'
+                        ? `${wishlistItems.length} منتج في المفضلة`
                         : `${wishlistItems.length} items in wishlist`
                       }
                     </p>
@@ -470,8 +470,8 @@ export default function WishlistPage() {
             {/* Wishlist Items */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {wishlistItems.map((item, index) => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className="rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
                   style={index === 0 ? { backgroundColor: '#FFFFFF' } : { backgroundColor: '#FFFFFF' }}
                 >
@@ -484,7 +484,7 @@ export default function WishlistPage() {
                         className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </Link>
-                    
+
                     {/* Remove Button */}
                     <button
                       onClick={() => handleRemoveFromWishlist(item.id)}
@@ -541,14 +541,13 @@ export default function WishlistPage() {
                       <button
                         onClick={() => handleAddToCart(item)}
                         disabled={(item as any).stockQuantity === 0 || isLoading}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors ${
-                          (item as any).stockQuantity === 0
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium transition-colors ${(item as any).stockQuantity === 0
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-[#DAA520] text-white hover:bg-[#B8860B]'
-                        }`}
+                          }`}
                       >
                         <ShoppingCart className="w-4 h-4" />
-                        {(item as any).stockQuantity === 0 
+                        {(item as any).stockQuantity === 0
                           ? (language === 'ar' ? 'نفد المخزون' : 'Out of Stock')
                           : (language === 'ar' ? 'أضف للسلة' : 'Add to Cart')
                         }
@@ -577,7 +576,7 @@ export default function WishlistPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-[#DAA520] text-white rounded-lg hover:bg-[#B8860B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  {isLoading 
+                  {isLoading
                     ? (language === 'ar' ? 'جاري الإضافة...' : 'Adding...')
                     : (language === 'ar' ? 'أضف الكل للسلة' : 'Add All to Cart')
                   }
@@ -619,7 +618,7 @@ export default function WishlistPage() {
                   </button>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  {language === 'ar' 
+                  {language === 'ar'
                     ? 'هل أنت متأكد من حذف جميع المنتجات من المفضلة؟ لا يمكن التراجع عن هذا الإجراء.'
                     : 'Are you sure you want to remove all items from your wishlist? This action cannot be undone.'
                   }
@@ -693,11 +692,11 @@ export default function WishlistPage() {
                     <div className="flex flex-wrap gap-3">
                       {(selectedProductForModal.variants || []).filter((v: any) => v.type === 'SIZE').map((size: any) => {
                         const hasStockGeneral = hasStockForCombination(size.value, undefined);
-                        const hasStockForColor = selectedColor 
+                        const hasStockForColor = selectedColor
                           ? hasStockForCombination(size.value, selectedColor)
                           : true;
                         const isAvailable = hasStockGeneral;
-                        
+
                         return (
                           <button
                             key={size.value}
@@ -711,13 +710,12 @@ export default function WishlistPage() {
                               }
                             }}
                             disabled={!isAvailable}
-                            className={`px-6 py-3 border-2 rounded-lg text-sm font-medium transition-all relative ${
-                              !isAvailable
+                            className={`px-6 py-3 border-2 rounded-lg text-sm font-medium transition-all relative ${!isAvailable
                                 ? 'opacity-30 cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400'
                                 : selectedSize === size.value
-                                ? 'border-[#DAA520] bg-[#DAA520]/10 text-[#DAA520]'
-                                : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                            }`}
+                                  ? 'border-[#DAA520] bg-[#DAA520]/10 text-[#DAA520]'
+                                  : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                              }`}
                           >
                             {!isAvailable && (
                               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">✕</span>
@@ -738,7 +736,7 @@ export default function WishlistPage() {
                     </h3>
                     <div className="flex flex-wrap gap-3">
                       {(selectedProductForModal.variants || []).filter((v: any) => v.type === 'COLOR').map((color: any) => {
-                        const hasStock = selectedSize 
+                        const hasStock = selectedSize
                           ? hasStockForCombination(selectedSize, color.value)
                           : hasStockForCombination(undefined, color.value);
                         return (
@@ -751,15 +749,13 @@ export default function WishlistPage() {
                                 }
                               }}
                               disabled={!hasStock}
-                              className={`relative w-14 h-14 rounded-full border-2 transition-all shadow-md hover:shadow-lg transform ${
-                                !hasStock
+                              className={`relative w-14 h-14 rounded-full border-2 transition-all shadow-md hover:shadow-lg transform ${!hasStock
                                   ? 'opacity-30 cursor-not-allowed'
                                   : 'hover:scale-110'
-                              } ${
-                                selectedColor === color.value && hasStock
+                                } ${selectedColor === color.value && hasStock
                                   ? 'border-[#DAA520] ring-4 ring-[#DAA520]/30 scale-110'
                                   : 'border-gray-300 hover:border-gray-400'
-                              }`}
+                                }`}
                               style={{
                                 backgroundColor: getColorHex(color.value)
                               }}
@@ -776,9 +772,8 @@ export default function WishlistPage() {
                                 </div>
                               )}
                             </button>
-                            <span className={`text-xs mt-1.5 font-medium ${
-                              selectedColor === color.value && hasStock ? 'text-[#DAA520]' : !hasStock ? 'text-gray-400' : 'text-gray-600'
-                            }`}>
+                            <span className={`text-xs mt-1.5 font-medium ${selectedColor === color.value && hasStock ? 'text-[#DAA520]' : !hasStock ? 'text-gray-400' : 'text-gray-600'
+                              }`}>
                               {language === 'ar' ? (color.valueAr || color.value) : color.value}
                             </span>
                           </div>
@@ -842,8 +837,7 @@ export default function WishlistPage() {
                   const hasNoStock = getAvailableStock() === 0;
                   return needsSize || needsColor || hasNoStock;
                 })()}
-                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 mt-6 ${
-                  (() => {
+                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 mt-6 ${(() => {
                     const sizes = (selectedProductForModal.variants || []).filter((v: any) => v.type === 'SIZE');
                     const colors = (selectedProductForModal.variants || []).filter((v: any) => v.type === 'COLOR');
                     const needsSize = sizes.length > 0 && !selectedSize;
@@ -853,7 +847,7 @@ export default function WishlistPage() {
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-[#DAA520] text-white hover:bg-[#B8860B] shadow-lg hover:shadow-xl transform hover:scale-105'
                   })()
-                }`}
+                  }`}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {language === 'ar' ? 'إضافة للسلة' : 'Add to Cart'}

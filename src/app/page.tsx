@@ -272,7 +272,7 @@ export default function HomePage() {
               ? firstProductFirstImage
               : firstProductFirstImage?.url;
 
-            const allSameImage = transformedProducts.every(p => {
+            const allSameImage = transformedProducts.every((p: any) => {
               const pFirstImage = p.images[0];
               const pImageUrl = typeof pFirstImage === 'string' ? pFirstImage : pFirstImage?.url;
               return pImageUrl === firstImageUrl;
